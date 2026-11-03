@@ -1,4 +1,4 @@
-# Shipbubble Courier Delivery for Shopware 6
+# Shipbubble Courier Delivery
 
 Live Shipbubble courier rates at checkout, shipment booking from the order,
 tracking emails and automatic delivery status updates — all on the merchant's
@@ -92,7 +92,7 @@ Then follow [Configuration](#configuration) and activate the shipping method.
 
 ## Configuration
 
-**Settings > Extensions > Shipbubble Courier Delivery for Shopware 6**
+**Settings > Extensions > Shipbubble Courier Delivery**
 
 Before you start you need a Shipbubble account
 ([app.shipbubble.com](https://app.shipbubble.com)) with API keys

@@ -58,9 +58,9 @@
     "extra": {
         "shopware-plugin-class": "Kommandhub\\ShipbubbleSW\\KmhShipbubbleSW",
         "label": {
-            "de-DE": "Shipbubble Kurierversand für Shopware 6",
-            "en-GB": "Shipbubble Courier Delivery for Shopware 6",
-            "fr-FR": "Shipbubble Courier Delivery for Shopware 6"
+            "de-DE": "Shipbubble Kurierversand",
+            "en-GB": "Shipbubble Courier Delivery",
+            "fr-FR": "Shipbubble Courier Delivery"
         },
         "description": {
             "de-DE": "Live-Kurierpreise von Shipbubble im Checkout, Sendungsbuchung aus der Bestellung, Tracking-E-Mails und automatische Lieferstatus-Updates mit dem eigenen Shipbubble-Konto.",

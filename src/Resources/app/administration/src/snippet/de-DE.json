@@ -1,6 +1,6 @@
 {
   "kmh-shipbubble": {
-    "title": "Shipbubble Kurierversand für Shopware 6",
+    "title": "Shipbubble Kurierversand",
     "config": {
       "testConnection": "Verbindung testen",
       "saveFirst": "Zuerst speichern; der Test verwendet den gespeicherten API-Schlüssel.",
@@ -67,7 +67,7 @@
   "sw-privileges": {
     "additional_permissions": {
       "shipbubble": {
-        "label": "Shipbubble Kurierversand für Shopware 6",
+        "label": "Shipbubble Kurierversand",
         "manage": "Manage"
       }
     }
