@@ -6,7 +6,9 @@ namespace Kommandhub\ShipbubbleSW\Tests\Unit\Flow;
 
 use Kommandhub\ShipbubbleSW\Flow\CreateShipmentAction;
 use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentCreatedEvent;
+use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentDeliveredEvent;
 use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentFailedEvent;
+use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentReturnedEvent;
 use Kommandhub\ShipbubbleSW\Flow\FlowInstaller;
 use Kommandhub\ShipbubbleSW\Shipment\Service\CreateResult;
 use Kommandhub\ShipbubbleSW\Shipment\Service\ShipmentService;
@@ -71,16 +73,16 @@ class FlowTest extends TestCase
         $created = [];
         $flows = $this->createMock(EntityRepository::class);
         $flows->method('searchIds')->willReturn($this->ids([]));
-        $flows->expects(static::exactly(3))->method('create')->willReturnCallback(function (array $payload) use (&$created): EntityWrittenContainerEvent {
+        $flows->expects(static::exactly(5))->method('create')->willReturnCallback(function (array $payload) use (&$created): EntityWrittenContainerEvent {
             $created[] = $payload[0];
 
             return self::written();
         });
         $types = $this->createMock(EntityRepository::class);
-        $types->method('searchIds')->willReturnOnConsecutiveCalls($this->ids([]), $this->ids(['existing-type']));
-        $types->expects(static::once())->method('create')->willReturn(self::written());
+        $types->method('searchIds')->willReturnOnConsecutiveCalls($this->ids([]), $this->ids(['existing-type']), $this->ids([]), $this->ids([]));
+        $types->expects(static::exactly(3))->method('create')->willReturn(self::written());
         $templates = $this->createMock(EntityRepository::class);
-        $templates->expects(static::exactly(2))->method('create')->willReturnCallback(static function (array $payload): EntityWrittenContainerEvent {
+        $templates->expects(static::exactly(4))->method('create')->willReturnCallback(static function (array $payload): EntityWrittenContainerEvent {
             static::assertSame('{{ salesChannel.translated.name }}', $payload[0]['translations']['en-GB']['senderName']);
             static::assertArrayHasKey('de-DE', $payload[0]['translations']);
 
@@ -90,18 +92,23 @@ class FlowTest extends TestCase
         (new FlowInstaller($flows, $types, $templates))->install(Context::createDefaultContext());
 
         static::assertSame(FlowInstaller::flowIds(), array_column($created, 'id'));
-        static::assertSame([true, true, true], array_column($created, 'active'));
-        static::assertSame([FlowInstaller::PAID_EVENT, ShipmentCreatedEvent::EVENT_NAME, ShipmentFailedEvent::EVENT_NAME], array_column($created, 'eventName'));
+        static::assertSame([true, true, true, true, true], array_column($created, 'active'));
+        static::assertSame(
+            [FlowInstaller::PAID_EVENT, ShipmentCreatedEvent::EVENT_NAME, ShipmentFailedEvent::EVENT_NAME, ShipmentDeliveredEvent::EVENT_NAME, ShipmentReturnedEvent::EVENT_NAME],
+            array_column($created, 'eventName'),
+        );
         static::assertSame(CreateShipmentAction::ACTION_NAME, $created[0]['sequences'][0]['actionName']);
         static::assertSame('default', $created[1]['sequences'][0]['config']['recipient']['type']);
         static::assertSame('admin', $created[2]['sequences'][0]['config']['recipient']['type']);
+        static::assertSame('default', $created[3]['sequences'][0]['config']['recipient']['type']);
+        static::assertSame('admin', $created[4]['sequences'][0]['config']['recipient']['type']);
     }
 
     public function testExistingOrLegacyFlowsAreLeftAlone(): void
     {
         $flows = $this->createMock(EntityRepository::class);
         // paid flow missing by id but its action is used by an older flow; the other two exist
-        $flows->method('searchIds')->willReturnOnConsecutiveCalls($this->ids([]), $this->ids(['legacy']), $this->ids(['f2']), $this->ids(['f3']));
+        $flows->method('searchIds')->willReturnOnConsecutiveCalls($this->ids([]), $this->ids(['legacy']), $this->ids(['f2']), $this->ids(['f3']), $this->ids(['f4']), $this->ids(['f5']));
         $flows->expects(static::never())->method('create');
         $mail = $this->createMock(EntityRepository::class);
         $mail->expects(static::never())->method('create');

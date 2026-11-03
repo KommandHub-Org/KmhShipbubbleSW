@@ -11,8 +11,14 @@ use Kommandhub\ShipbubbleSW\Client\ShipbubbleClient;
 use Kommandhub\ShipbubbleSW\Core\Content\Shipment\ShipmentCollection;
 use Kommandhub\ShipbubbleSW\Core\Content\Shipment\ShipmentEntity;
 use Kommandhub\ShipbubbleSW\Exception\ShipbubbleApiException;
+use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentCancelledEvent;
 use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentCreatedEvent;
+use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentDeliveredEvent;
+use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentEvent;
 use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentFailedEvent;
+use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentInTransitEvent;
+use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentPickedUpEvent;
+use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentReturnedEvent;
 use Kommandhub\ShipbubbleSW\Quote\CourierOption;
 use Kommandhub\ShipbubbleSW\Quote\QuoteError;
 use Kommandhub\ShipbubbleSW\Quote\QuoteService;
@@ -26,6 +32,7 @@ use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Uuid\Uuid;
 
 /**
@@ -52,6 +59,17 @@ class ShipmentService
     private const CONFIRMATION_WINDOW = 900;
 
     private const INVALID_TOKEN = 'invalid request token';
+
+    /**
+     * Flow event fired when a shipment reaches a status (spec §10).
+     */
+    private const STATUS_EVENTS = [
+        'picked_up' => ShipmentPickedUpEvent::class,
+        'in_transit' => ShipmentInTransitEvent::class,
+        'completed' => ShipmentDeliveredEvent::class,
+        'returned' => ShipmentReturnedEvent::class,
+        'cancelled' => ShipmentCancelledEvent::class,
+    ];
 
     /**
      * @param EntityRepository<ShipmentCollection> $kmhShipbubbleShipmentRepository
@@ -108,13 +126,13 @@ class ShipmentService
 
         if ($result instanceof ShipbubbleApiException) {
             $this->recordError($shipment, $result, $context);
-            $this->dispatch($shipmentId, $result->getMessage(), $context);
+            $this->dispatch($shipmentId, ShipmentFailedEvent::class, $context, $result->getMessage());
 
             throw $result;
         }
 
         if ($result->booked) {
-            $this->dispatch($shipmentId, null, $context);
+            $this->dispatch($shipmentId, ShipmentCreatedEvent::class, $context);
         }
 
         return $result;
@@ -141,7 +159,28 @@ class ShipmentService
             throw ShipmentException::notFound();
         }
 
-        $this->applyLabel($shipment, $label, $context);
+        $this->applyLabel($shipment, $label, ShipmentStatus::tryFrom($label->status), $context);
+    }
+
+    /**
+     * Applies a status change Shipbubble reported by webhook (spec §7). The
+     * webhook body's own `status` is the previous one, so the caller passes
+     * the new status separately.
+     *
+     * @return bool false when no shipment has this Shipbubble order id
+     */
+    public function applyWebhook(string $shipbubbleOrderId, Shipment $label, ?ShipmentStatus $status, Context $context): bool
+    {
+        $criteria = (new Criteria())->addFilter(new EqualsFilter('shipbubbleOrderId', $shipbubbleOrderId))->setLimit(1);
+        $shipment = $this->kmhShipbubbleShipmentRepository->search($criteria, $context)->getEntities()->first();
+
+        if ($shipment === null) {
+            return false;
+        }
+
+        $this->applyLabel($shipment, $label, $status, $context);
+
+        return true;
     }
 
     /**
@@ -172,6 +211,7 @@ class ShipmentService
             'errorMessage' => null,
         ], $context);
         $this->deliveryStateUpdater->apply(ShipmentStatus::Cancelled, $shipment->getOrderDeliveryId(), $context);
+        $this->dispatch($shipment->getId(), ShipmentCancelledEvent::class, $context);
     }
 
     /**
@@ -196,10 +236,11 @@ class ShipmentService
     }
 
     /**
-     * Fires "shipment created" after a booking, or "shipment failed" with
-     * Shipbubble's reason (spec §10).
+     * Fires a shipment Flow event with the shipment's current data (spec §10).
+     *
+     * @param class-string<ShipmentEvent> $eventClass
      */
-    private function dispatch(string $shipmentId, ?string $errorMessage, Context $context): void
+    private function dispatch(string $shipmentId, string $eventClass, Context $context, string $errorMessage = ''): void
     {
         $shipment = $this->load($shipmentId, $context);
         $criteria = (new Criteria([$shipment->getOrderId()]))->addAssociation('orderCustomer');
@@ -209,11 +250,14 @@ class ShipmentService
             return;
         }
 
-        $values = [$order, $context, (string)$shipment->getCourierName(), (string)$shipment->getTrackingUrl(), $shipment->getStatus()];
-
-        $this->eventDispatcher->dispatch(
-            $errorMessage === null ? new ShipmentCreatedEvent(...$values) : new ShipmentFailedEvent(...[...$values, $errorMessage]),
-        );
+        $this->eventDispatcher->dispatch(new $eventClass(
+            $order,
+            $context,
+            (string)$shipment->getCourierName(),
+            (string)$shipment->getTrackingUrl(),
+            $shipment->getStatus(),
+            $errorMessage,
+        ));
     }
 
     private function needsQuote(ShipmentEntity $shipment): bool
@@ -338,9 +382,8 @@ class ShipmentService
         $this->addTrackingCode($shipment->getOrderDeliveryId(), $label->orderId, $context);
     }
 
-    private function applyLabel(ShipmentEntity $shipment, Shipment $label, Context $context): void
+    private function applyLabel(ShipmentEntity $shipment, Shipment $label, ?ShipmentStatus $status, Context $context): void
     {
-        $status = ShipmentStatus::tryFrom($label->status);
         $now = (new \DateTimeImmutable())->format(Defaults::STORAGE_DATE_TIME_FORMAT);
         $data = [
             'trackingUrl' => $label->trackingUrl ?? $shipment->getTrackingUrl(),
@@ -364,8 +407,14 @@ class ShipmentService
 
         $this->update($shipment, $data, $context);
 
-        if ($status !== null && $status->value !== $shipment->getStatus()) {
-            $this->deliveryStateUpdater->apply($status, $shipment->getOrderDeliveryId(), $context);
+        if ($status === null || $status->value === $shipment->getStatus()) {
+            return;
+        }
+
+        $this->deliveryStateUpdater->apply($status, $shipment->getOrderDeliveryId(), $context);
+
+        if (isset(self::STATUS_EVENTS[$status->value])) {
+            $this->dispatch($shipment->getId(), self::STATUS_EVENTS[$status->value], $context);
         }
     }
 

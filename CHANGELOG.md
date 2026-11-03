@@ -17,6 +17,9 @@ Initial release.
 - Ready-made flows, installed with the plugin and active: "create shipment when paid" books the courier automatically, "tracking email to customer" sends the courier and tracking link, "booking failed alert" emails the shop admin Shipbubble's reason. Each can be edited or switched off in Flow Builder.
 - Flow Builder action "Create Shipbubble shipment" and triggers "Shipbubble shipment created" and "Shipbubble shipment failed".
 - New order permissions "Shipbubble shipments" (view, edit).
+- Shipbubble webhooks: status changes (confirmed, picked up, in transit, delivered, returned, cancelled) update the shipment and the order's delivery status automatically. Webhooks are verified with your API key; repeated deliveries are processed once.
+- The configuration page shows the webhook URL to paste into the Shipbubble dashboard and when the last update arrived. The separate "Webhook secret" setting is gone: Shipbubble signs with your API key.
+- Flow Builder triggers for picked up, in transit, delivered, returned and cancelled, and two more ready-made flows: "delivered email to customer" and "parcel returned alert" to the shop admin.
 
 <!--
 Format notes (this file is rendered by the Shopware Store):

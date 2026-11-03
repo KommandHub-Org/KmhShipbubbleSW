@@ -35,16 +35,12 @@
             <helpText lang="de-DE">Beginnt mit sb_prod_. Im Live-Modus gebuchte Sendungen werden aus Ihrem Shipbubble-Wallet bezahlt.</helpText>
         </input-field>
 
-        <input-field type="password">
-            <name>webhookSecret</name>
-            <label>Webhook secret</label>
-            <label lang="de-DE">Webhook-Secret</label>
-            <helpText>Used to verify that status updates really come from Shipbubble.</helpText>
-            <helpText lang="de-DE">Damit wird geprüft, dass Statusmeldungen wirklich von Shipbubble kommen.</helpText>
-        </input-field>
-
         <component name="kmh-shipbubble-connection-test">
             <name>connectionTest</name>
+        </component>
+
+        <component name="kmh-shipbubble-webhook-info">
+            <name>webhookInfo</name>
         </component>
     </card>
 

@@ -58,7 +58,7 @@ services:
     calls:
       - [setContainer, ['@service_container']]
 
-  Kommandhub\ShipbubbleSW\Administration\Controller\ProductWeightController:
+  Kommandhub\ShipbubbleSW\Administration\Controller\ConfigStatusController:
     public: true
     calls:
       - [setContainer, ['@service_container']]
@@ -72,3 +72,8 @@ services:
   Kommandhub\ShipbubbleSW\Flow\CreateShipmentAction:
     tags:
       - { name: 'flow.action', priority: 600, key: 'action.kmh.shipbubble.create_shipment' }
+
+  Kommandhub\ShipbubbleSW\Webhook\Controller\WebhookController:
+    public: true
+    calls:
+      - [setContainer, ['@service_container']]

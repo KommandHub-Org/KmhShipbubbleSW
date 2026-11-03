@@ -157,7 +157,7 @@ class KmhShipbubbleSW extends Plugin
             ['ids' => array_map(Uuid::fromHexToBytes(...), FlowInstaller::flowIds())],
             ['ids' => ArrayParameterType::BINARY],
         );
-        $mailTypes = ['types' => [FlowInstaller::CREATED_MAIL_TYPE, FlowInstaller::FAILED_MAIL_TYPE]];
+        $mailTypes = ['types' => FlowInstaller::MAIL_TYPES];
         $connection->executeStatement(
             'DELETE `mail_template` FROM `mail_template` JOIN `mail_template_type` ON `mail_template_type`.`id` = `mail_template`.`mail_template_type_id` WHERE `mail_template_type`.`technical_name` IN (:types)',
             $mailTypes,

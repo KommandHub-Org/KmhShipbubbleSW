@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Kommandhub\ShipbubbleSW\Flow;
 
 use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentCreatedEvent;
+use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentDeliveredEvent;
 use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentFailedEvent;
+use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentReturnedEvent;
 use Shopware\Core\Content\Flow\Dispatching\Action\SendMailAction;
 use Shopware\Core\Content\Flow\FlowCollection;
 use Shopware\Core\Content\MailTemplate\Aggregate\MailTemplateType\MailTemplateTypeCollection;
@@ -25,7 +27,14 @@ use Shopware\Core\Framework\Uuid\Uuid;
  *  - "Shipbubble: tracking email to customer" — sends the courier and tracking
  *    link once the label is booked (active);
  *  - "Shipbubble: booking failed alert" — emails the shop admin Shipbubble's
- *    reason when booking fails (active).
+ *    reason when booking fails (active);
+ *  - "Shipbubble: delivered email to customer" — confirms the delivery
+ *    (active);
+ *  - "Shipbubble: parcel returned alert" — tells the shop admin a parcel is
+ *    coming back (active).
+ *
+ * Shopware's own "delivery shipped" mail already covers picked up / in transit
+ * (the delivery moves to shipped), so no extra mail is installed for those.
  *
  * Each flow has a fixed id and is created only when missing, so a flow the
  * merchant edited, switched off or deleted is never touched or brought back
@@ -38,6 +47,12 @@ class FlowInstaller
     public const CREATED_MAIL_TYPE = 'kmh_shipbubble_shipment_created';
 
     public const FAILED_MAIL_TYPE = 'kmh_shipbubble_shipment_failed';
+
+    public const DELIVERED_MAIL_TYPE = 'kmh_shipbubble_shipment_delivered';
+
+    public const RETURNED_MAIL_TYPE = 'kmh_shipbubble_shipment_returned';
+
+    public const MAIL_TYPES = [self::CREATED_MAIL_TYPE, self::FAILED_MAIL_TYPE, self::DELIVERED_MAIL_TYPE, self::RETURNED_MAIL_TYPE];
 
     /**
      * @param EntityRepository<FlowCollection> $flowRepository
@@ -58,12 +73,12 @@ class FlowInstaller
      */
     public static function flowIds(): array
     {
-        return array_map(static fn (string $key): string => Uuid::fromStringToHex('kmh_shipbubble.flow.' . $key), ['paid', 'created', 'failed']);
+        return array_map(static fn (string $key): string => Uuid::fromStringToHex('kmh_shipbubble.flow.' . $key), ['paid', 'created', 'failed', 'delivered', 'returned']);
     }
 
     public function install(Context $context): void
     {
-        [$paidId, $createdId, $failedId] = self::flowIds();
+        [$paidId, $createdId, $failedId, $deliveredId, $returnedId] = self::flowIds();
 
         // Versions before fixed ids created the paid flow with a random id.
         if (!$this->flowExists($paidId, $context) && !$this->actionInUse($context)) {
@@ -96,6 +111,30 @@ class FlowInstaller
                 'Shipbubble: booking failed alert',
                 ShipmentFailedEvent::EVENT_NAME,
                 'Emails the shop admin when a Shipbubble shipment could not be booked.',
+                self::mailSequence($templateId, ['type' => 'admin', 'data' => []]),
+                $context
+            );
+        }
+
+        if (!$this->flowExists($deliveredId, $context)) {
+            $templateId = $this->createMailTemplate(self::DELIVERED_MAIL_TYPE, ['en-GB' => 'Shipbubble: shipment delivered', 'de-DE' => 'Shipbubble: Sendung zugestellt'], self::deliveredMail(), $context);
+            $this->createFlow(
+                $deliveredId,
+                'Shipbubble: delivered email to customer',
+                ShipmentDeliveredEvent::EVENT_NAME,
+                'Emails the customer when Shipbubble reports the parcel as delivered.',
+                self::mailSequence($templateId, ['type' => 'default', 'data' => []]),
+                $context
+            );
+        }
+
+        if (!$this->flowExists($returnedId, $context)) {
+            $templateId = $this->createMailTemplate(self::RETURNED_MAIL_TYPE, ['en-GB' => 'Shipbubble: parcel returned', 'de-DE' => 'Shipbubble: Paket retourniert'], self::returnedMail(), $context);
+            $this->createFlow(
+                $returnedId,
+                'Shipbubble: parcel returned alert',
+                ShipmentReturnedEvent::EVENT_NAME,
+                'Emails the shop admin when Shipbubble reports that a parcel is being returned.',
                 self::mailSequence($templateId, ['type' => 'admin', 'data' => []]),
                 $context
             );
@@ -237,6 +276,60 @@ class FlowInstaller
                 'contentPlain' => "Die Buchung des Shipbubble-Kuriers für Bestellung {{ order.orderNumber }} ist fehlgeschlagen.\n\n"
                     . "Shipbubble meldet: {{ errorMessage }}\n\n"
                     . 'Beheben Sie die Ursache (z. B. Shipbubble-Wallet aufladen) und klicken Sie dann in der Bestellung in der Administration auf Sendung erstellen.',
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, array<string, string>>
+     */
+    private static function deliveredMail(): array
+    {
+        return [
+            'en-GB' => [
+                'subject' => 'Your order {{ order.orderNumber }} has been delivered',
+                'description' => 'Sent to the customer when Shipbubble reports the parcel as delivered.',
+                'contentHtml' => '<p>Hello {{ order.orderCustomer.firstName }},</p>'
+                    . '<p>{{ courierName }} has delivered your order <strong>{{ order.orderNumber }}</strong>.</p>'
+                    . '<p>Thank you for shopping with us.</p>',
+                'contentPlain' => "Hello {{ order.orderCustomer.firstName }},\n\n"
+                    . "{{ courierName }} has delivered your order {{ order.orderNumber }}.\n\n"
+                    . 'Thank you for shopping with us.',
+            ],
+            'de-DE' => [
+                'subject' => 'Ihre Bestellung {{ order.orderNumber }} wurde zugestellt',
+                'description' => 'Wird an den Kunden gesendet, wenn Shipbubble das Paket als zugestellt meldet.',
+                'contentHtml' => '<p>Hallo {{ order.orderCustomer.firstName }},</p>'
+                    . '<p>{{ courierName }} hat Ihre Bestellung <strong>{{ order.orderNumber }}</strong> zugestellt.</p>'
+                    . '<p>Vielen Dank für Ihren Einkauf.</p>',
+                'contentPlain' => "Hallo {{ order.orderCustomer.firstName }},\n\n"
+                    . "{{ courierName }} hat Ihre Bestellung {{ order.orderNumber }} zugestellt.\n\n"
+                    . 'Vielen Dank für Ihren Einkauf.',
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, array<string, string>>
+     */
+    private static function returnedMail(): array
+    {
+        return [
+            'en-GB' => [
+                'subject' => 'Parcel for order {{ order.orderNumber }} is being returned',
+                'description' => 'Sent to the shop admin when Shipbubble reports a parcel as returned.',
+                'contentHtml' => '<p>Shipbubble reports that the parcel for order <strong>{{ order.orderNumber }}</strong> ({{ courierName }}) is being returned to you.</p>'
+                    . '<p><a href="{{ trackingUrl }}">Shipbubble tracking</a></p>',
+                'contentPlain' => "Shipbubble reports that the parcel for order {{ order.orderNumber }} ({{ courierName }}) is being returned to you.\n\n"
+                    . 'Shipbubble tracking: {{ trackingUrl }}',
+            ],
+            'de-DE' => [
+                'subject' => 'Paket für Bestellung {{ order.orderNumber }} wird retourniert',
+                'description' => 'Wird an den Shop-Admin gesendet, wenn Shipbubble ein Paket als retourniert meldet.',
+                'contentHtml' => '<p>Shipbubble meldet, dass das Paket für Bestellung <strong>{{ order.orderNumber }}</strong> ({{ courierName }}) an Sie zurückgeht.</p>'
+                    . '<p><a href="{{ trackingUrl }}">Shipbubble-Sendungsverfolgung</a></p>',
+                'contentPlain' => "Shipbubble meldet, dass das Paket für Bestellung {{ order.orderNumber }} ({{ courierName }}) an Sie zurückgeht.\n\n"
+                    . 'Shipbubble-Sendungsverfolgung: {{ trackingUrl }}',
             ],
         ];
     }

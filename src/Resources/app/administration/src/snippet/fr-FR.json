@@ -55,6 +55,13 @@
         "cancelled": "Annulé",
         "failed": "Échoué"
       }
+    },
+    "webhook": {
+      "url": "URL du webhook",
+      "urlHelp": "Collez cette URL dans votre tableau de bord Shipbubble sous Paramètres > Clés API et webhooks, comme URL de test et de production. Les mises à jour de statut arrivent alors automatiquement.",
+      "noDomain": "Ajoutez d'abord un domaine storefront à ce canal de vente.",
+      "lastReceived": "Dernière mise à jour de Shipbubble : {date}",
+      "neverReceived": "Aucune mise à jour de Shipbubble reçue."
     }
   },
   "sw-privileges": {

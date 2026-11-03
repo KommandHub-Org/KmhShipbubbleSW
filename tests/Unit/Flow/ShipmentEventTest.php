@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace Kommandhub\ShipbubbleSW\Tests\Unit\Flow;
 
+use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentCancelledEvent;
 use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentCreatedEvent;
+use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentDeliveredEvent;
+use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentInTransitEvent;
+use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentPickedUpEvent;
+use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentReturnedEvent;
 use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentEvent;
 use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentFailedEvent;
 use Kommandhub\ShipbubbleSW\Flow\FlowEventSubscriber;
@@ -22,6 +27,11 @@ use Shopware\Core\Framework\Event\BusinessEventDefinition;
 #[CoversClass(ShipmentCreatedEvent::class)]
 #[CoversClass(ShipmentFailedEvent::class)]
 #[CoversClass(FlowEventSubscriber::class)]
+#[CoversClass(ShipmentPickedUpEvent::class)]
+#[CoversClass(ShipmentInTransitEvent::class)]
+#[CoversClass(ShipmentDeliveredEvent::class)]
+#[CoversClass(ShipmentReturnedEvent::class)]
+#[CoversClass(ShipmentCancelledEvent::class)]
 class ShipmentEventTest extends TestCase
 {
     public function testEventsExposeTheOrderTheCustomerAndTheShipmentValues(): void
@@ -41,6 +51,12 @@ class ShipmentEventTest extends TestCase
 
         static::assertSame('kmh_shipbubble.shipment.created', $created->getName());
         static::assertSame('kmh_shipbubble.shipment.failed', $failed->getName());
+        $values = [$order, $context, 'One', '', 'x'];
+        static::assertSame('kmh_shipbubble.shipment.picked_up', (new ShipmentPickedUpEvent(...$values))->getName());
+        static::assertSame('kmh_shipbubble.shipment.in_transit', (new ShipmentInTransitEvent(...$values))->getName());
+        static::assertSame('kmh_shipbubble.shipment.delivered', (new ShipmentDeliveredEvent(...$values))->getName());
+        static::assertSame('kmh_shipbubble.shipment.returned', (new ShipmentReturnedEvent(...$values))->getName());
+        static::assertSame('kmh_shipbubble.shipment.cancelled', (new ShipmentCancelledEvent(...$values))->getName());
         static::assertSame($order, $created->getOrder());
         static::assertSame('order-1', $created->getOrderId());
         static::assertSame('sc-1', $created->getSalesChannelId());

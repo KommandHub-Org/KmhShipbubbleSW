@@ -5,64 +5,39 @@ declare(strict_types=1);
 namespace Kommandhub\ShipbubbleSW\Webhook\Service;
 
 use Kommandhub\ShipbubbleSW\Setting\Service\Config;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
- * Verifies that an inbound webhook really came from Shipbubble.
+ * Checks that a webhook really comes from Shipbubble (spec §7).
  *
- * The endpoint is public and unauthenticated, so this is the only thing
- * standing between the internet and the order state machine. Two rules:
- *
- * 1. Compare with hash_equals(), never `===` — a timing-variable comparison
- *    leaks the expected digest byte by byte.
- * 2. Fail closed. A missing header or unconfigured secret is a rejection, not
- *    a pass-through.
- *
- * Adjust SIGNATURE_HEADER and ALGORITHM to what the provider documents. Some
- * providers sign a canonical string (timestamp + body) rather than the raw
- * body — if so, build that string here and nowhere else.
+ * ✅ Verified in the sandbox: `x-ship-signature` is the HMAC-SHA512 of the raw
+ * body, lowercase hex, keyed with the API key of the mode the webhook belongs
+ * to. Shipbubble has no separate webhook secret. One URL serves both modes,
+ * so the sales channel's sandbox and live keys are both accepted.
  */
 class WebhookSignatureValidator
 {
-    private const SIGNATURE_HEADER = 'x-ship-signature';
+    public const SIGNATURE_HEADER = 'x-ship-signature';
 
-    /**
-     * Unconfirmed: Shipbubble's Postman docs say SHA-256, KAN-193 says SHA-512.
-     * Settled by the SB01 sandbox check before SB05 closes (spec §7).
-     */
     private const ALGORITHM = 'sha512';
 
     public function __construct(private readonly Config $config)
     {
     }
 
-    /**
-     * @throws AccessDeniedHttpException when the request is not authentic
-     */
-    public function validate(Request $request, ?string $salesChannelId = null): void
+    public function isValid(string $rawBody, ?string $signature, ?string $salesChannelId): bool
     {
-        $signature = $request->headers->get(self::SIGNATURE_HEADER);
-
         if ($signature === null || $signature === '') {
-            throw new AccessDeniedHttpException('Missing Shipbubble signature header.');
+            return false;
         }
 
-        $secret = $this->getSecret($salesChannelId);
+        foreach (['sandboxApiKey', 'liveApiKey'] as $key) {
+            $secret = $this->config->getString($key, $salesChannelId);
 
-        if ($secret === '') {
-            throw new AccessDeniedHttpException('Shipbubble webhook secret is not configured.');
+            if ($secret !== '' && hash_equals(hash_hmac(self::ALGORITHM, $rawBody, $secret), strtolower($signature))) {
+                return true;
+            }
         }
 
-        $expected = hash_hmac(self::ALGORITHM, $request->getContent(), $secret);
-
-        if (!hash_equals($expected, $signature)) {
-            throw new AccessDeniedHttpException('Invalid Shipbubble signature.');
-        }
-    }
-
-    private function getSecret(?string $salesChannelId): string
-    {
-        return $this->config->getString('webhookSecret', $salesChannelId);
+        return false;
     }
 }

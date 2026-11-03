@@ -173,8 +173,9 @@ and the routes `POST /api/_action/kmh-shipbubble/shipment/{id}/create|refresh|ca
   codes; the shipping method's tracking URL points to Shipbubble tracking.
 
 Flow Builder: action `action.kmh.shipbubble.create_shipment` books every
-`quoted` delivery of the order; triggers `kmh_shipbubble.shipment.created` and
-`kmh_shipbubble.shipment.failed` expose the order and `courierName`,
+`quoted` delivery of the order; triggers `kmh_shipbubble.shipment.created`,
+`.failed`, `.picked_up`, `.in_transit`, `.delivered`, `.returned` and
+`.cancelled` expose the order and `courierName`,
 `trackingUrl`, `status`, `errorMessage`.
 
 `Flow/FlowInstaller` installs every flow the plugin needs, **active**, on
@@ -185,6 +186,8 @@ install and update — no manual Flow Builder setup:
 | Shipbubble: create shipment when paid | payment paid | books the courier |
 | Shipbubble: tracking email to customer | shipment created | emails the customer the courier and tracking link |
 | Shipbubble: booking failed alert | shipment failed | emails the shop admin Shipbubble's reason |
+| Shipbubble: delivered email to customer | shipment delivered | confirms the delivery to the customer |
+| Shipbubble: parcel returned alert | shipment returned | tells the shop admin a parcel is coming back |
 
 Each flow has a fixed id and is only created when missing, so an edited,
 switched-off or deleted flow is left alone by updates. Uninstalling without
@@ -220,10 +223,24 @@ Built output under `src/Resources/app/storefront/dist/` is generated.
 
 ### Webhooks
 
-Not built yet (SB05). `Webhook/Service/WebhookSignatureValidator` checks the
-`x-ship-signature` HMAC against the configured webhook secret; the algorithm
-(SHA-256 or SHA-512) is confirmed against the Shipbubble sandbox before the
-endpoint ships.
+`POST /kmh-shipbubble/webhook/{salesChannelId}` (or `/default` for the global
+settings), storefront scope, no login. The configuration page shows the URL to
+paste into the Shipbubble dashboard (Settings > API keys & webhooks, test and
+live URL) and when the last webhook arrived.
+
+- `Webhook/Service/WebhookSignatureValidator`: `x-ship-signature` must be the
+  HMAC-SHA512 (hex) of the raw body with the sales channel's sandbox or live
+  API key; otherwise 401 and nothing is stored.
+- `Webhook/Service/WebhookReceiver`: stores the body in
+  `kmh_shipbubble_webhook_event` keyed by its SHA-256 (a redelivery is
+  acknowledged and not processed again) and queues
+  `ShipbubbleWebhookMessage`; Shipbubble gets its 200 immediately.
+- `Webhook/Message/ShipbubbleWebhookHandler` (needs a running worker): takes
+  the new status from the **last `package_status` entry** — the body's
+  `status` is the previous one — and applies it through
+  `ShipmentService::applyWebhook()`: shipment status, tracking, waybill,
+  courier tracking number, Shopware delivery state, Flow event. Events the
+  plugin does not use (e.g. `shipment.cod.remitted`) are stored with a note.
 
 ## Local development
 

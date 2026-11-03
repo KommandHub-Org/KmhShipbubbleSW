@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Kommandhub\ShipbubbleSW\Tests\Unit\Shipping;
 
-use Kommandhub\ShipbubbleSW\Administration\Controller\ProductWeightController;
+use Kommandhub\ShipbubbleSW\Administration\Controller\ConfigStatusController;
 use Kommandhub\ShipbubbleSW\Shipping\ProductWeightReport;
+use Kommandhub\ShipbubbleSW\Webhook\Service\WebhookReceiver;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Shopware\Core\Content\Product\ProductCollection;
@@ -15,7 +16,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\IdSearchResult;
 
 #[CoversClass(ProductWeightReport::class)]
-#[CoversClass(ProductWeightController::class)]
+#[CoversClass(ConfigStatusController::class)]
 class ProductWeightReportTest extends TestCase
 {
     public function testCountsActiveSellableProductsWithoutWeightIncludingInheritance(): void
@@ -33,9 +34,18 @@ class ProductWeightReportTest extends TestCase
                 return new IdSearchResult(4, [], $criteria, $searchContext);
             });
 
-        $response = (new ProductWeightController(new ProductWeightReport($repository)))->productsWithoutWeight($context);
+        $response = (new ConfigStatusController(new ProductWeightReport($repository), $this->createStub(WebhookReceiver::class)))->productsWithoutWeight($context);
 
         static::assertSame('{"count":4}', $response->getContent());
         static::assertFalse($context->considerInheritance());
+    }
+
+    public function testWebhookStatus(): void
+    {
+        $receiver = $this->createMock(WebhookReceiver::class);
+        $receiver->method('lastReceivedAt')->willReturn('2026-11-03 12:00:00.000');
+        $controller = new ConfigStatusController(new ProductWeightReport($this->createStub(EntityRepository::class)), $receiver);
+
+        static::assertSame('{"lastReceivedAt":"2026-11-03 12:00:00.000"}', $controller->webhookStatus()->getContent());
     }
 }

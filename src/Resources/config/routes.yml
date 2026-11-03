@@ -3,3 +3,7 @@
 kmh_shipbubble_administration:
     resource: ../../Administration/Controller/
     type: attribute
+
+kmh_shipbubble_webhook:
+    resource: ../../Webhook/Controller/
+    type: attribute

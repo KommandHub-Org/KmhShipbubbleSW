@@ -15,7 +15,10 @@ use Kommandhub\ShipbubbleSW\Client\ShipbubbleClient;
 use Kommandhub\ShipbubbleSW\Core\Content\Shipment\ShipmentCollection;
 use Kommandhub\ShipbubbleSW\Core\Content\Shipment\ShipmentEntity;
 use Kommandhub\ShipbubbleSW\Exception\ShipbubbleApiException;
+use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentCancelledEvent;
 use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentCreatedEvent;
+use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentDeliveredEvent;
+use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentPickedUpEvent;
 use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentEvent;
 use Kommandhub\ShipbubbleSW\Flow\Event\ShipmentFailedEvent;
 use Kommandhub\ShipbubbleSW\Quote\CourierOption;
@@ -69,6 +72,9 @@ use Symfony\Component\HttpClient\Response\MockResponse;
 #[UsesClass(ShipmentEvent::class)]
 #[UsesClass(ShipmentCreatedEvent::class)]
 #[UsesClass(ShipmentFailedEvent::class)]
+#[UsesClass(ShipmentCancelledEvent::class)]
+#[UsesClass(ShipmentDeliveredEvent::class)]
+#[UsesClass(ShipmentPickedUpEvent::class)]
 class ShipmentServiceTest extends TestCase
 {
     private const SHIPMENT_ID = '0190aaaa0000700080000000000000a1';
@@ -277,6 +283,29 @@ class ShipmentServiceTest extends TestCase
         static::assertSame('https://t/1', $update['trackingUrl']);
         static::assertSame('https://w/1.pdf', $update['waybillUrl']);
         static::assertSame(['courierTrackingCode' => 'SB777'], $update['lastPayload']);
+        static::assertInstanceOf(ShipmentDeliveredEvent::class, $this->events[0]);
+    }
+
+    public function testWebhookAppliesTheGivenStatusToTheMatchingShipment(): void
+    {
+        $this->stateUpdater->expects(static::once())->method('apply')->with(ShipmentStatus::PickedUp, self::DELIVERY_ID);
+        $label = Shipment::fromArray(['order_id' => 'SB-1', 'status' => 'confirmed']);
+
+        $applied = $this->service($this->shipment(['status' => 'confirmed', 'shipbubbleOrderId' => 'SB-1']))
+            ->applyWebhook('SB-1', $label, ShipmentStatus::PickedUp, Context::createDefaultContext());
+
+        static::assertTrue($applied);
+        static::assertSame('picked_up', $this->shipmentUpdates[0]['status']);
+        static::assertInstanceOf(ShipmentPickedUpEvent::class, $this->events[0]);
+        static::assertFalse($this->service(null)->applyWebhook('SB-404', $label, ShipmentStatus::PickedUp, Context::createDefaultContext()));
+    }
+
+    public function testStatusesWithoutAFlowEventFireNothing(): void
+    {
+        $this->service($this->shipment(['status' => 'pending', 'shipbubbleOrderId' => 'SB-1']))
+            ->applyWebhook('SB-1', Shipment::fromArray(['order_id' => 'SB-1']), ShipmentStatus::Confirmed, Context::createDefaultContext());
+
+        static::assertSame([], $this->events);
     }
 
     public function testRefreshOfACancelledLabelAndUnchangedOrUnknownStatus(): void
@@ -310,6 +339,7 @@ class ShipmentServiceTest extends TestCase
         static::assertStringEndsWith('/shipping/labels/cancel/SB-1', $cancel->getRequestUrl());
         static::assertSame('cancelled', $this->shipmentUpdates[0]['status']);
         static::assertArrayHasKey('cancelledAt', $this->shipmentUpdates[0]);
+        static::assertInstanceOf(ShipmentCancelledEvent::class, $this->events[0]);
     }
 
     public function testRefusedCancelKeepsTheStatusAndShowsShipbubblesReason(): void

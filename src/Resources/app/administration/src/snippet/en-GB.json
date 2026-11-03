@@ -55,6 +55,13 @@
         "cancelled": "Cancelled",
         "failed": "Failed"
       }
+    },
+    "webhook": {
+      "url": "Webhook URL",
+      "urlHelp": "Paste this URL into your Shipbubble dashboard under Settings > API keys & webhooks, as the test and the live webhook URL. Status updates then reach the shop by themselves.",
+      "noDomain": "Add a storefront domain to this sales channel first.",
+      "lastReceived": "Last update from Shipbubble: {date}",
+      "neverReceived": "No update from Shipbubble received yet."
     }
   },
   "sw-privileges": {

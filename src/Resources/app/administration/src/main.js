@@ -18,5 +18,6 @@ import './component/kmh-shipbubble-sender-validation';
 import './component/kmh-shipbubble-api-select';
 import './component/kmh-shipbubble-weight-warning';
 import './component/kmh-shipbubble-order-shipment';
+import './component/kmh-shipbubble-webhook-info';
 import './extension/sw-order-detail-general';
 import './extension/flow-builder';

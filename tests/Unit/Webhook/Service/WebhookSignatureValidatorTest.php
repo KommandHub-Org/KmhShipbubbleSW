@@ -5,68 +5,42 @@ declare(strict_types=1);
 namespace Kommandhub\ShipbubbleSW\Tests\Unit\Webhook\Service;
 
 use Kommandhub\ShipbubbleSW\Setting\Service\Config;
+use Kommandhub\ShipbubbleSW\Tests\Unit\Client\ClientFactory;
 use Kommandhub\ShipbubbleSW\Webhook\Service\WebhookSignatureValidator;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 #[CoversClass(WebhookSignatureValidator::class)]
+#[UsesClass(Config::class)]
 class WebhookSignatureValidatorTest extends TestCase
 {
-    private const SECRET = 'test-secret';
+    private const BODY = '{"event":"shipment.status.changed"}';
 
-    private const BODY = '{"event":"example.completed"}';
-
-    private function validator(string $secret = self::SECRET): WebhookSignatureValidator
+    public function testSignedWithEitherModesKeyPasses(): void
     {
-        $config = $this->createMock(Config::class);
-        $config->method('getString')->willReturn($secret);
+        $validator = $this->validator(['sandboxApiKey' => 'sb_sandbox_k', 'liveApiKey' => 'sb_prod_k']);
 
-        return new WebhookSignatureValidator($config);
+        static::assertTrue($validator->isValid(self::BODY, hash_hmac('sha512', self::BODY, 'sb_sandbox_k'), null));
+        static::assertTrue($validator->isValid(self::BODY, strtoupper(hash_hmac('sha512', self::BODY, 'sb_prod_k')), null));
     }
 
-    private function request(?string $signature): Request
+    public function testWrongMissingOrUnconfiguredSignaturesFail(): void
     {
-        $request = new Request([], [], [], [], [], [], self::BODY);
+        $validator = $this->validator(['sandboxApiKey' => 'sb_sandbox_k']);
 
-        if ($signature !== null) {
-            $request->headers->set('x-ship-signature', $signature);
-        }
-
-        return $request;
-    }
-
-    public function testValidSignaturePasses(): void
-    {
-        $signature = hash_hmac('sha512', self::BODY, self::SECRET);
-
-        $this->validator()->validate($this->request($signature));
-
-        $this->expectNotToPerformAssertions();
-    }
-
-    public function testMissingHeaderIsRejected(): void
-    {
-        $this->expectException(AccessDeniedHttpException::class);
-
-        $this->validator()->validate($this->request(null));
-    }
-
-    public function testTamperedBodyIsRejected(): void
-    {
-        $this->expectException(AccessDeniedHttpException::class);
-
-        $this->validator()->validate($this->request(hash_hmac('sha512', 'other body', self::SECRET)));
+        static::assertFalse($validator->isValid(self::BODY, hash_hmac('sha256', self::BODY, 'sb_sandbox_k'), null));
+        static::assertFalse($validator->isValid(self::BODY . ' ', hash_hmac('sha512', self::BODY, 'sb_sandbox_k'), null));
+        static::assertFalse($validator->isValid(self::BODY, null, null));
+        static::assertFalse($validator->isValid(self::BODY, '', null));
+        static::assertFalse($this->validator([])->isValid(self::BODY, hash_hmac('sha512', self::BODY, ''), null));
     }
 
     /**
-     * Fail closed: an unconfigured secret must never accept a request.
+     * @param array<string, string> $keys
      */
-    public function testUnconfiguredSecretIsRejected(): void
+    private function validator(array $keys): WebhookSignatureValidator
     {
-        $this->expectException(AccessDeniedHttpException::class);
-
-        $this->validator('')->validate($this->request('anything'));
+        return new WebhookSignatureValidator(ClientFactory::config($keys));
     }
 }
