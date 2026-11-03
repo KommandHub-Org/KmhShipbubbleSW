@@ -1,0 +1,23 @@
+{
+  "base": "/bundles/kmhshipbubblesw/administration/",
+  "entryPoints": {
+    "kmh-shipbubble-s-w": {
+      "css": [],
+      "dynamic": [],
+      "js": [
+        "/bundles/kmhshipbubblesw/administration/assets/kmh-shipbubble-s-w-D_AAofkz.js"
+      ],
+      "legacy": false,
+      "preload": []
+    }
+  },
+  "legacy": false,
+  "metadatas": {},
+  "version": [
+    "7.1.0",
+    7,
+    1,
+    0
+  ],
+  "viteServer": null
+}
