@@ -17,7 +17,7 @@
         "storefront",
         "webhooks"
     ],
-    "homepage": "https://github.com/KommandHub/KommandhubShipbubbleSW",
+    "homepage": "https://github.com/KommandHub-Org/KmhShipbubbleSW",
     "authors": [
         {
             "name": "Kommandhub Limited",
@@ -28,9 +28,9 @@
     ],
     "support": {
         "email": "admin@kommandhub.com",
-        "issues": "https://github.com/KommandHub/KommandhubShipbubbleSW/issues",
-        "source": "https://github.com/KommandHub/KommandhubShipbubbleSW",
-        "docs": "https://github.com/KommandHub/KommandhubShipbubbleSW/blob/main/README.md"
+        "issues": "https://github.com/KommandHub-Org/KmhShipbubbleSW/issues",
+        "source": "https://github.com/KommandHub-Org/KmhShipbubbleSW",
+        "docs": "https://github.com/KommandHub-Org/KmhShipbubbleSW/blob/main/README.md"
     },
     "require": {
         "php": ">=8.2",

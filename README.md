@@ -166,7 +166,7 @@ The plugin is developed inside a Docker stack that runs a full Shopware install
 with this directory mounted at `custom/static-plugins/KmhShipbubbleSW`.
 
 ```bash
-git clone https://github.com/KommandHub/KommandhubShipbubbleSW.git
+git clone https://github.com/KommandHub-Org/KmhShipbubbleSW.git
 cd KmhShipbubbleSW
 
 make up     # build the image, start Shopware, install dependencies
