@@ -30,7 +30,7 @@ Shopware.Component.register('kmh-shipbubble-connection-test', {
 
                 if (result.success) {
                     this.createNotificationSuccess({
-                        message: this.$tc('kmh-shipbubble.config.connectionOk', 0, {
+                        message: this.$t('kmh-shipbubble.config.connectionOk', {
                             balance: result.balance,
                             currency: result.currency,
                         }),

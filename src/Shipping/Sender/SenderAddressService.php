@@ -42,7 +42,7 @@ class SenderAddressService
             $street,
             $this->config->getString('senderCity', $salesChannelId),
             $this->config->getString('senderState', $salesChannelId),
-            $this->config->getString('senderCountry', $salesChannelId) ?: 'NG',
+            self::countryName($this->config->getString('senderCountry', $salesChannelId) ?: 'NG'),
         ], static fn (string $part): bool => $part !== ''));
 
         $validated = $this->client->addresses()->validate($name, $email, $phone, $address, null, $salesChannelId);
@@ -54,5 +54,18 @@ class SenderAddressService
         $this->config->setSenderAddressCode($validated->addressCode, $salesChannelId);
 
         return $validated;
+    }
+
+    /**
+     * Shipbubble's geocoder rejects an ISO code ("NG") but accepts the English
+     * country name ("Nigeria"). Anything that is not a two-letter code is passed on.
+     */
+    private static function countryName(string $country): string
+    {
+        if (preg_match('/^[A-Za-z]{2}$/', $country) !== 1) {
+            return $country;
+        }
+
+        return \Locale::getDisplayRegion('-' . $country, 'en') ?: $country;
     }
 }

@@ -34,13 +34,14 @@ class ConfigModeTest extends TestCase
         $sandbox->setSenderAddressCode('111');
 
         static::assertSame('111', $sandbox->getSenderAddressCode());
-        static::assertSame('111', $sandbox->getString('senderAddressCodeSandbox'));
-        static::assertSame('', $sandbox->getString('senderAddressCodeLive'));
+        // Outside the config domain, so the configuration page cannot save a stale code over it.
+        static::assertSame('', $sandbox->getString('senderAddressCodeSandbox'));
 
-        $live = ClientFactory::config(['mode' => 'live']);
+        $live = ClientFactory::config(['mode' => 'live', 'senderAddressCodeSandbox' => 'x']);
+        static::assertSame('', $live->getSenderAddressCode());
+
         $live->setSenderAddressCode('222');
-
-        static::assertSame('222', $live->getString('senderAddressCodeLive'));
+        static::assertSame('222', $live->getSenderAddressCode());
     }
 
     public function testNumericReaders(): void

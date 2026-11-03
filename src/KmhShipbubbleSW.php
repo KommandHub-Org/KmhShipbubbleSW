@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kommandhub\ShipbubbleSW;
 
 use Doctrine\DBAL\Connection;
+use Kommandhub\ShipbubbleSW\Setting\Service\Config;
 use Kommandhub\ShipbubbleSW\Shipping\Installer\ShippingMethodInstaller;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
@@ -139,6 +140,8 @@ class KmhShipbubbleSW extends Plugin
         // List every table the plugin's migrations create, children first.
         $connection->executeStatement('DROP TABLE IF EXISTS `kmh_shipbubble_webhook_event`');
         $connection->executeStatement('DROP TABLE IF EXISTS `kmh_shipbubble_shipment`');
+        // Shopware removes the config domain itself, but not the plugin's own state keys.
+        $connection->executeStatement('DELETE FROM `system_config` WHERE `configuration_key` LIKE :prefix', ['prefix' => Config::STATE_KEY . '%']);
         // Without this the migrations stay marked as executed, so a reinstall
         // skips them and never recreates the tables.
         $this->removeMigrations();

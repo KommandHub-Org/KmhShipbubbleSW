@@ -31,7 +31,7 @@ Shopware.Component.register('kmh-shipbubble-sender-validation', {
 
                 if (result.success) {
                     this.createNotificationSuccess({
-                        message: this.$tc('kmh-shipbubble.config.senderOk', 0, { address: result.formattedAddress }),
+                        message: this.$t('kmh-shipbubble.config.senderOk', { address: result.formattedAddress }),
                     });
                 } else {
                     this.createNotificationError({ message: result.message });

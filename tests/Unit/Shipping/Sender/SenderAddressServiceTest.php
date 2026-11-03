@@ -51,9 +51,19 @@ class SenderAddressServiceTest extends TestCase
 
         $address = $this->service($config, $response)->validateAndStore();
 
-        static::assertSame('1 Allen Ave, Ikeja, Lagos, NG', json_decode($response->getRequestOptions()['body'], true)['address']);
+        static::assertSame('1 Allen Ave, Ikeja, Lagos, Nigeria', json_decode($response->getRequestOptions()['body'], true)['address']);
         static::assertSame('1 Allen Ave, Ikeja', $address->formattedAddress);
         static::assertSame('777', $config->getSenderAddressCode());
+    }
+
+    public function testCountryNameIsPassedThrough(): void
+    {
+        $response = ClientFactory::ok(['address_code' => 1]);
+        $config = ClientFactory::config(array_merge(self::SENDER, ['senderCountry' => 'Ghana']));
+
+        $this->service($config, $response)->validateAndStore();
+
+        static::assertSame('1 Allen Ave, Ikeja, Lagos, Ghana', json_decode($response->getRequestOptions()['body'], true)['address']);
     }
 
     public function testIncompleteSenderIsRejectedWithoutApiCall(): void

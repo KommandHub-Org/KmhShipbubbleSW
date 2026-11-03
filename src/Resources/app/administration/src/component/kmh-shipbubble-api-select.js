@@ -1,4 +1,4 @@
-import currentSalesChannelId from './sales-channel';
+import currentSalesChannelId, { systemConfig } from './sales-channel';
 
 /**
  * Select whose options come from the merchant's Shipbubble account
@@ -56,6 +56,20 @@ Shopware.Component.register('kmh-shipbubble-api-select', {
     computed: {
         isMultiple() {
             return this.multiple === true || this.multiple === 'true';
+        },
+
+        // sw-system-config sets isLoading while it saves or switches sales channel.
+        configLoading() {
+            return systemConfig(this)?.isLoading ?? false;
+        },
+    },
+
+    watch: {
+        // Reload after a save or a sales channel switch, so a newly saved key takes effect.
+        configLoading(loading, wasLoading) {
+            if (wasLoading && !loading) {
+                this.load();
+            }
         },
     },
 

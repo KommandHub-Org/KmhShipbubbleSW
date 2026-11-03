@@ -1,17 +1,26 @@
 /**
- * The sales channel currently selected on the plugin configuration page
- * (null = all sales channels). sw-system-config holds it; config components
- * are rendered several levels below it.
+ * The sw-system-config instance that renders the plugin configuration page.
+ * Config components are rendered several levels below it.
  */
-export default function currentSalesChannelId(component) {
+export function systemConfig(component) {
     let parent = component.$parent;
 
     while (parent) {
-        if (Object.prototype.hasOwnProperty.call(parent, 'currentSalesChannelId')) {
-            return parent.currentSalesChannelId ?? null;
+        // `in`, not hasOwnProperty: a production build keeps component data off
+        // the proxy's own keys, so hasOwnProperty never matches there.
+        if ('actualConfigData' in parent && 'currentSalesChannelId' in parent) {
+            return parent;
         }
         parent = parent.$parent;
     }
 
     return null;
+}
+
+/**
+ * The sales channel currently selected on the plugin configuration page
+ * (null = all sales channels).
+ */
+export default function currentSalesChannelId(component) {
+    return systemConfig(component)?.currentSalesChannelId ?? null;
 }

@@ -10,6 +10,13 @@ class Config
 {
     public const KEY = 'KmhShipbubbleSW.config.';
 
+    /**
+     * Values the plugin writes itself. Kept outside the config domain: the
+     * configuration page loads and saves back every key under KEY, so a value
+     * stored there is overwritten with whatever the page loaded.
+     */
+    public const STATE_KEY = 'KmhShipbubbleSW.state.';
+
     public const MODE_SANDBOX = 'sandbox';
 
     public const MODE_LIVE = 'live';
@@ -111,12 +118,14 @@ class Config
      */
     public function getSenderAddressCode(?string $salesChannelId = null): string
     {
-        return $this->getString($this->senderAddressCodeKey($salesChannelId), $salesChannelId);
+        $value = $this->systemConfigService->get(self::STATE_KEY . $this->senderAddressCodeKey($salesChannelId), $salesChannelId);
+
+        return is_string($value) ? $value : '';
     }
 
     public function setSenderAddressCode(string $addressCode, ?string $salesChannelId = null): void
     {
-        $this->systemConfigService->set(self::KEY . $this->senderAddressCodeKey($salesChannelId), $addressCode, $salesChannelId);
+        $this->systemConfigService->set(self::STATE_KEY . $this->senderAddressCodeKey($salesChannelId), $addressCode, $salesChannelId);
     }
 
     public function getFloat(string $key, float $default, ?string $salesChannelId = null): float
