@@ -9,6 +9,8 @@ use Kommandhub\ShipbubbleSW\Client\ShipbubbleClient;
 use Kommandhub\ShipbubbleSW\Exception\ShipbubbleApiException;
 use Kommandhub\ShipbubbleSW\Setting\Service\Config;
 use Kommandhub\ShipbubbleSW\Shipping\Address\AddressLine;
+use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
+use Shopware\Core\Checkout\Order\Aggregate\OrderAddress\OrderAddressEntity;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -43,11 +45,21 @@ class ReceiverAddressService
             return QuoteError::IncompleteAddress;
         }
 
+        return $this->addressCodeFor($address, (string)$context->getCustomer()?->getEmail(), $context->getSalesChannelId());
+    }
+
+    /**
+     * Same as {@see addressCode()} for an address that is not the checkout's,
+     * such as the shipping address of a placed order.
+     *
+     * @throws ShipbubbleApiException when Shipbubble could not be asked (never cached)
+     */
+    public function addressCodeFor(CustomerAddressEntity|OrderAddressEntity $address, string $email, string $salesChannelId): string|QuoteError
+    {
         $street = trim($address->getStreet());
         $city = trim($address->getCity());
         $phone = trim((string)$address->getPhoneNumber());
         $country = $address->getCountry()?->getIso() ?? '';
-        $email = (string)$context->getCustomer()?->getEmail();
 
         if ($street === '' || $city === '' || $phone === '' || $country === '' || $email === '') {
             return QuoteError::IncompleteAddress;
@@ -60,7 +72,6 @@ class ReceiverAddressService
             $city,
             (string)$address->getCountryState()?->getName(),
         ], $country);
-        $salesChannelId = $context->getSalesChannelId();
         $key = 'kmh_sb_addr_' . $this->config->getMode($salesChannelId) . '_'
             . hash('sha256', mb_strtolower(implode('|', [$line, (string)$address->getZipcode(), $name, $email, $phone])));
 

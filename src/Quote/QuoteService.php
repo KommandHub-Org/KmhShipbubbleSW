@@ -11,6 +11,9 @@ use Kommandhub\ShipbubbleSW\Exception\ShipbubbleApiException;
 use Kommandhub\ShipbubbleSW\Setting\Service\Config;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Cart\Cart;
+use Shopware\Core\Checkout\Order\Aggregate\OrderAddress\OrderAddressEntity;
+use Shopware\Core\Checkout\Order\OrderEntity;
+use Shopware\Core\Framework\Context;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -46,8 +49,47 @@ class QuoteService
     {
         $salesChannelId = $context->getSalesChannelId();
 
+        return $this->report(function () use ($cart, $context, $salesChannelId): QuoteStruct|QuoteError {
+            $receiverCode = $this->receiverAddressService->addressCode($context);
+
+            if ($receiverCode instanceof QuoteError) {
+                return $receiverCode;
+            }
+
+            return $this->rates($receiverCode, $this->packageBuilder->build($cart, $salesChannelId), $context->getCurrency()->getIsoCode(), $salesChannelId, true);
+        }, $salesChannelId, $context->getContext());
+    }
+
+    /**
+     * A fresh quote for a placed order, never from the cache: a cached quote
+     * may carry a request token another booking already used (spec §12).
+     * Needs the order's `lineItems.product`, `orderCustomer` and `currency`
+     * associations and the delivery's shipping address with its country.
+     */
+    public function requote(OrderEntity $order, OrderAddressEntity $address, Context $context): QuoteStruct|QuoteError
+    {
+        $salesChannelId = $order->getSalesChannelId();
+
+        return $this->report(function () use ($order, $address, $salesChannelId): QuoteStruct|QuoteError {
+            $receiverCode = $this->receiverAddressService->addressCodeFor($address, (string)$order->getOrderCustomer()?->getEmail(), $salesChannelId);
+
+            if ($receiverCode instanceof QuoteError) {
+                return $receiverCode;
+            }
+
+            return $this->rates($receiverCode, $this->packageBuilder->buildForOrder($order), (string)$order->getCurrency()?->getIsoCode(), $salesChannelId, false);
+        }, $salesChannelId, $context);
+    }
+
+    /**
+     * Runs a quote and logs and reports any failure.
+     *
+     * @param \Closure(): (QuoteStruct|QuoteError) $fetch
+     */
+    private function report(\Closure $fetch, string $salesChannelId, Context $context): QuoteStruct|QuoteError
+    {
         try {
-            $result = $this->fetch($cart, $context);
+            $result = $fetch();
         } catch (ShipbubbleApiException $e) {
             $result = QuoteError::fromRateFailure($e->getReason());
             $httpStatus = $e->getHttpStatus();
@@ -59,7 +101,7 @@ class QuoteService
                 'httpStatus' => $httpStatus ?? null,
                 'salesChannelId' => $salesChannelId,
             ]);
-            $this->failureNotifier->notify($result, $salesChannelId, $context->getContext());
+            $this->failureNotifier->notify($result, $salesChannelId, $context);
         }
 
         return $result;
@@ -68,32 +110,20 @@ class QuoteService
     /**
      * @throws ShipbubbleApiException
      */
-    private function fetch(Cart $cart, SalesChannelContext $context): QuoteStruct|QuoteError
+    private function rates(string $receiverCode, Package $package, string $currency, string $salesChannelId, bool $useCache): QuoteStruct|QuoteError
     {
-        $salesChannelId = $context->getSalesChannelId();
         $senderCode = $this->config->getSenderAddressCode($salesChannelId);
 
         if ($senderCode === '') {
             return QuoteError::NotConfigured;
         }
 
-        $receiverCode = $this->receiverAddressService->addressCode($context);
-
-        if ($receiverCode instanceof QuoteError) {
-            return $receiverCode;
-        }
-
         $mode = $this->config->getMode($salesChannelId);
-        $package = $this->packageBuilder->build($cart, $salesChannelId);
         $couriers = $this->enabledCouriers($salesChannelId);
-        $currency = $context->getCurrency()->getIsoCode();
         $key = 'kmh_sb_quote_' . $salesChannelId . '_' . $mode . '_'
             . hash('sha256', implode('|', [$senderCode, $receiverCode, $package->signature(), $currency, implode(',', $couriers)]));
 
-        /** @var array{quote: RateQuote, fetchedAt: \DateTimeImmutable} $cached */
-        $cached = $this->cache->get($key, function (ItemInterface $item) use ($senderCode, $receiverCode, $package, $couriers, $salesChannelId): array {
-            $item->expiresAfter($this->config->getInt('quoteCacheTtl', 1800, $salesChannelId));
-
+        $fetch = function () use ($senderCode, $receiverCode, $package, $couriers, $salesChannelId): array {
             $quote = $this->client->rates()->fetch([
                 'sender_address_code' => (int)$senderCode,
                 'reciever_address_code' => (int)$receiverCode,
@@ -105,7 +135,16 @@ class QuoteService
             ], $couriers, $salesChannelId);
 
             return ['quote' => $quote, 'fetchedAt' => new \DateTimeImmutable()];
-        });
+        };
+
+        /** @var array{quote: RateQuote, fetchedAt: \DateTimeImmutable} $cached */
+        $cached = $useCache
+            ? $this->cache->get($key, function (ItemInterface $item) use ($fetch, $salesChannelId): array {
+                $item->expiresAfter($this->config->getInt('quoteCacheTtl', 1800, $salesChannelId));
+
+                return $fetch();
+            })
+            : $fetch();
 
         $rates = $cached['quote']->couriers;
 

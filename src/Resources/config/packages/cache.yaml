@@ -1,0 +1,10 @@
+# Address validations cost the merchant a Shipbubble wallet token and quotes
+# are rate limited, so their cache must survive between requests. A dedicated
+# filesystem pool keeps it working even where cache.app is an in-memory array
+# (as in some dev setups).
+framework:
+  cache:
+    pools:
+      kmh_shipbubble.cache:
+        adapter: cache.adapter.filesystem
+        default_lifetime: 86400

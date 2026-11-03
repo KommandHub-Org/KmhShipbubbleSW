@@ -32,6 +32,7 @@ use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\Notification\NotificationService;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\HttpClient\MockHttpClient;
@@ -146,6 +147,27 @@ class QuoteServiceTest extends TestCase
         $logger->expects(static::once())->method('log')->with('notice');
 
         static::assertSame(QuoteError::IncompleteAddress, $this->service(logger: $logger)->quote(CheckoutFixture::cart(), CheckoutFixture::context(phone: '')));
+    }
+
+    public function testRequoteOfAnOrderNeverUsesTheCache(): void
+    {
+        $service = $this->service();
+        $service->quote(CheckoutFixture::cart(), CheckoutFixture::context());
+
+        $first = $service->requote(CheckoutFixture::order(), CheckoutFixture::orderAddress(), Context::createDefaultContext());
+        $service->requote(CheckoutFixture::order(), CheckoutFixture::orderAddress(), Context::createDefaultContext());
+
+        static::assertInstanceOf(QuoteStruct::class, $first);
+        static::assertSame('tok', $first->requestToken);
+        static::assertSame(3, $this->rateCalls);
+    }
+
+    public function testRequoteWithAnIncompleteOrderAddress(): void
+    {
+        static::assertSame(
+            QuoteError::IncompleteAddress,
+            $this->service()->requote(CheckoutFixture::order(), CheckoutFixture::orderAddress(phone: ''), Context::createDefaultContext()),
+        );
     }
 
     public function testTimeoutIsUnavailableAndNotCached(): void

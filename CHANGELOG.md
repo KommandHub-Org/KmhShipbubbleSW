@@ -11,6 +11,12 @@ Initial release.
 - When an address cannot be quoted, checkout explains why and asks the customer to choose another delivery method. If Shipbubble is unreachable, your fallback price is charged instead (when set), and you get an admin notification at most once an hour.
 - The chosen courier, Shipbubble quote and charged price are saved with each order.
 - The configuration page warns when active products have no weight.
+- Shipbubble card on the order: chosen courier, charged and Shipbubble price, status, tracking link, courier tracking number and waybill, with Create shipment, Refresh status and Cancel shipment.
+- Creating a shipment books the customer's courier with the checkout quote. When that quote can no longer be used, the plugin fetches a new one and asks you to confirm the new courier price first; the customer's shipping price never changes.
+- The Shipbubble order id is written to the order's tracking codes, and the shipping method links it to Shipbubble's tracking page, so Shopware's own tracking link and mails work.
+- Ready-made flows, installed with the plugin and active: "create shipment when paid" books the courier automatically, "tracking email to customer" sends the courier and tracking link, "booking failed alert" emails the shop admin Shipbubble's reason. Each can be edited or switched off in Flow Builder.
+- Flow Builder action "Create Shipbubble shipment" and triggers "Shipbubble shipment created" and "Shipbubble shipment failed".
+- New order permissions "Shipbubble shipments" (view, edit).
 
 <!--
 Format notes (this file is rendered by the Shopware Store):

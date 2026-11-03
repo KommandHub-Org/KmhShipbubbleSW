@@ -33,6 +33,12 @@ export default class ShipbubbleConfigService extends Classes.ApiService {
             .then((response) => Classes.ApiService.handleResponse(response));
     }
 
+    shipmentAction(shipmentId, action, payload = {}) {
+        return this.httpClient
+            .post(`_action/kmh-shipbubble/shipment/${shipmentId}/${action}`, payload, { headers: this.getBasicHeaders() })
+            .then((response) => Classes.ApiService.handleResponse(response));
+    }
+
     post(action, salesChannelId) {
         return this.httpClient
             .post(`_action/kmh-shipbubble/${action}`, { salesChannelId }, { headers: this.getBasicHeaders() })

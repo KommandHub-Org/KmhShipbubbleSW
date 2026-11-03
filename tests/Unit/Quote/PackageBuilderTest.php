@@ -58,6 +58,22 @@ class PackageBuilderTest extends TestCase
         static::assertSame('20754594', $package->categoryId);
     }
 
+    public function testOrderParcelUsesTheProductWeight(): void
+    {
+        $builder = $this->builder(ClientFactory::ok(self::BOXES));
+
+        $package = $builder->buildForOrder(CheckoutFixture::order(1.5));
+        static::assertSame([[
+            'name' => 'Product p1',
+            'description' => 'SW-p1',
+            'unit_weight' => '1.5',
+            'unit_amount' => '5000',
+            'quantity' => '2',
+        ]], $package->items);
+
+        static::assertSame('0.25', $builder->buildForOrder(CheckoutFixture::order(null))->items[0]['unit_weight']);
+    }
+
     public function testMissingWeightUsesTheDefaultAndIsLogged(): void
     {
         $logger = $this->createMock(LoggerInterface::class);

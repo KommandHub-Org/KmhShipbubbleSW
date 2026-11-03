@@ -20,6 +20,23 @@ enum ShipmentStatus: string
     case PickedUp = 'picked_up';
     case InTransit = 'in_transit';
     case Completed = 'completed';
+    case Returned = 'returned';
     case Cancelled = 'cancelled';
     case Failed = 'failed';
+
+    /**
+     * Statuses before anything is booked at Shipbubble.
+     */
+    public function isBookable(): bool
+    {
+        return $this === self::Quoted || $this === self::NeedsQuote;
+    }
+
+    /**
+     * Booked statuses Shipbubble may still change.
+     */
+    public function isOpen(): bool
+    {
+        return \in_array($this, [self::Pending, self::Confirmed, self::PickedUp, self::InTransit], true);
+    }
 }

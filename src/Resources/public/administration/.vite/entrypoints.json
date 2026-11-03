@@ -2,10 +2,12 @@
   "base": "/bundles/kmhshipbubblesw/administration/",
   "entryPoints": {
     "kmh-shipbubble-s-w": {
-      "css": [],
+      "css": [
+        "/bundles/kmhshipbubblesw/administration/assets/kmh-shipbubble-s-w-ByNis688.css"
+      ],
       "dynamic": [],
       "js": [
-        "/bundles/kmhshipbubblesw/administration/assets/kmh-shipbubble-s-w-C5QsDOav.js"
+        "/bundles/kmhshipbubblesw/administration/assets/kmh-shipbubble-s-w-DDiqfvii.js"
       ],
       "legacy": false,
       "preload": []

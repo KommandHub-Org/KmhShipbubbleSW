@@ -11,6 +11,50 @@
       "requestFailed": "The request to the Shopware server failed.",
       "productsWithoutWeight": "Active products without a weight: {count}. Checkout uses the default product weight for them, so courier prices may be off.",
       "showProducts": "Show products"
+    },
+    "flow": {
+      "createShipment": "Create Shipbubble shipment",
+      "createShipmentHelp": "Books the customer's chosen Shipbubble courier for every Shipbubble delivery of the order that is not booked yet. A delivery that needs a new price is left for you to confirm in the order."
+    },
+    "shipment": {
+      "title": "Shipbubble",
+      "courier": "Courier",
+      "status": "Status",
+      "charged": "Charged to customer",
+      "carrierPrice": "Shipbubble price",
+      "orderId": "Shipbubble order",
+      "trackingCode": "Courier tracking number",
+      "tracking": "Tracking",
+      "openTracking": "Open tracking page",
+      "waybill": "Waybill",
+      "downloadWaybill": "Download waybill",
+      "create": "Create shipment",
+      "refresh": "Refresh status",
+      "cancel": "Cancel shipment",
+      "requoteTitle": "Confirm new courier price",
+      "requoteText": "The courier quote has to be renewed. {courier} now costs {new} (was {old}).",
+      "requoteCharged": "The shipping price the customer paid does not change. Book the shipment at the new price?",
+      "requoteConfirm": "Book shipment",
+      "cancelTitle": "Cancel shipment?",
+      "cancelText": "Shipbubble may charge a cancellation fee, and a shipment can no longer be cancelled once the courier has processed it.",
+      "cancelConfirm": "Cancel shipment",
+      "done": {
+        "create": "Shipment created at Shipbubble.",
+        "refresh": "Status updated from Shipbubble.",
+        "cancel": "Shipment cancelled."
+      },
+      "statuses": {
+        "quoted": "Not booked yet",
+        "needs_quote": "Needs a new price",
+        "pending": "Booked",
+        "confirmed": "Confirmed",
+        "picked_up": "Picked up",
+        "in_transit": "In transit",
+        "completed": "Delivered",
+        "returned": "Returned",
+        "cancelled": "Cancelled",
+        "failed": "Failed"
+      }
     }
   },
   "sw-privileges": {

@@ -43,7 +43,11 @@ class ShippingMethodInstaller
 
     public function install(Context $context): void
     {
-        if ($this->findId($context) !== null) {
+        $existingId = $this->findId($context);
+
+        if ($existingId !== null) {
+            $this->addTrackingUrl($existingId, $context);
+
             return;
         }
 
@@ -55,9 +59,10 @@ class ShippingMethodInstaller
             'active' => false,
             'taxType' => 'auto',
             'name' => ShipbubbleShippingMethod::NAME_EN,
+            'trackingUrl' => ShipbubbleShippingMethod::TRACKING_URL,
             'translations' => [
-                'en-GB' => ['name' => ShipbubbleShippingMethod::NAME_EN],
-                'de-DE' => ['name' => ShipbubbleShippingMethod::NAME_DE],
+                'en-GB' => ['name' => ShipbubbleShippingMethod::NAME_EN, 'trackingUrl' => ShipbubbleShippingMethod::TRACKING_URL],
+                'de-DE' => ['name' => ShipbubbleShippingMethod::NAME_DE, 'trackingUrl' => ShipbubbleShippingMethod::TRACKING_URL],
             ],
             'prices' => [[
                 'calculation' => 1,
@@ -90,6 +95,21 @@ class ShippingMethodInstaller
         }
 
         $this->shippingMethodRepository->update([['id' => $id, 'active' => $active]], $context);
+    }
+
+    /**
+     * Methods installed before tracking links existed get the Shipbubble link,
+     * unless the merchant already entered one.
+     */
+    private function addTrackingUrl(string $id, Context $context): void
+    {
+        $method = $this->shippingMethodRepository->search(new Criteria([$id]), $context)->getEntities()->first();
+
+        if ($method === null || ($method->getTrackingUrl() ?? '') !== '') {
+            return;
+        }
+
+        $this->shippingMethodRepository->update([['id' => $id, 'trackingUrl' => ShipbubbleShippingMethod::TRACKING_URL]], $context);
     }
 
     private function findId(Context $context): ?string

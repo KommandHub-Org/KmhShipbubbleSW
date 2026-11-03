@@ -14,7 +14,13 @@ use Shopware\Core\Checkout\Cart\Tax\Struct\CalculatedTaxCollection;
 use Shopware\Core\Checkout\Cart\Tax\Struct\TaxRuleCollection;
 use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Customer\CustomerEntity;
+use Shopware\Core\Checkout\Order\Aggregate\OrderAddress\OrderAddressEntity;
+use Shopware\Core\Checkout\Order\Aggregate\OrderCustomer\OrderCustomerEntity;
+use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemCollection;
+use Shopware\Core\Checkout\Order\Aggregate\OrderLineItem\OrderLineItemEntity;
+use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Checkout\Shipping\ShippingMethodEntity;
+use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Defaults;
 use Shopware\Core\System\Country\Aggregate\CountryState\CountryStateEntity;
 use Shopware\Core\System\Country\CountryEntity;
@@ -75,6 +81,60 @@ final class CheckoutFixture
             shippingLocation: ShippingLocation::createFromAddress($address),
             customer: $customer,
         );
+    }
+
+    /**
+     * A placed order with one product line item, shipped to Lagos.
+     */
+    public static function order(?float $weight = 1.5, string $phone = '+2348031234567'): OrderEntity
+    {
+        $product = new ProductEntity();
+        $product->setId('p1');
+        $product->setWeight($weight);
+
+        $lineItem = new OrderLineItemEntity();
+        $lineItem->setId('li1');
+        $lineItem->setType(LineItem::PRODUCT_LINE_ITEM_TYPE);
+        $lineItem->setLabel('Product p1');
+        $lineItem->setPayload(['productNumber' => 'SW-p1']);
+        $lineItem->setUnitPrice(5000.0);
+        $lineItem->setQuantity(2);
+        $lineItem->setProduct($product);
+
+        $customer = new OrderCustomerEntity();
+        $customer->setId('oc1');
+        $customer->setEmail('ada@example.com');
+
+        $currency = new CurrencyEntity();
+        $currency->setId(Defaults::CURRENCY);
+        $currency->setIsoCode('NGN');
+
+        $order = new OrderEntity();
+        $order->setId('order-1');
+        $order->setSalesChannelId('sc-1');
+        $order->setLineItems(new OrderLineItemCollection([$lineItem]));
+        $order->setOrderCustomer($customer);
+        $order->setCurrency($currency);
+
+        return $order;
+    }
+
+    public static function orderAddress(string $phone = '+2348031234567'): OrderAddressEntity
+    {
+        $country = new CountryEntity();
+        $country->setId('country-ng');
+        $country->setIso('NG');
+
+        $address = new OrderAddressEntity();
+        $address->setId('oa1');
+        $address->setFirstName('Ada');
+        $address->setLastName('Obi');
+        $address->setStreet('15 Awolowo Road');
+        $address->setCity('Lagos');
+        $address->setPhoneNumber($phone);
+        $address->setCountry($country);
+
+        return $address;
     }
 
     /**

@@ -15,4 +15,10 @@ final class ShipbubbleShippingMethod
     public const NAME_EN = 'Courier delivery (Shipbubble)';
 
     public const NAME_DE = 'Kurierversand (Shipbubble)';
+
+    /**
+     * Shopware fills `%s` with the delivery's tracking code, which is the
+     * Shipbubble order id (spec §2).
+     */
+    public const TRACKING_URL = 'https://trackshipment.shipbubble.com/shipment/%s';
 }

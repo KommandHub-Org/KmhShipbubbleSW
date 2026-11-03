@@ -1,23 +1,21 @@
 /**
- * Registers a dedicated admin permission so privileged actions from this plugin
- * can be granted to roles independently of the broad built-in roles.
- *
- * Appears under Settings > Users & permissions > Roles > Additional
- * permissions. The composite identifier `shipbubble.manage` is what both the
- * client-side action and the server-side route `_acl` must check against —
- * a client-only check is decoration, not a permission.
+ * Order permissions for the Shipbubble card (spec §12), under Settings >
+ * Users & permissions > Roles > Orders. The server enforces the same
+ * privileges: the entity read for viewing, `kmh_shipbubble_shipment:update`
+ * on the create, refresh and cancel routes.
  */
 Shopware.Service('privileges').addPrivilegeMappingEntry({
-    category: 'additional_permissions',
-    parent: null,
-    key: 'shipbubble',
+    category: 'permissions',
+    parent: 'orders',
+    key: 'kmh_shipbubble_shipment',
     roles: {
-        manage: {
-            // Dependencies pull in the built-in roles whose read/update
-            // privileges the action needs; `privileges` stays empty so this is
-            // a pure gate for the action itself.
-            privileges: [],
-            dependencies: [],
+        viewer: {
+            privileges: ['kmh_shipbubble_shipment:read'],
+            dependencies: ['order.viewer'],
+        },
+        editor: {
+            privileges: ['kmh_shipbubble_shipment:update'],
+            dependencies: ['kmh_shipbubble_shipment.viewer'],
         },
     },
 });

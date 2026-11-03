@@ -11,6 +11,7 @@ use Kommandhub\ShipbubbleSW\Setting\Service\Config;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Cart\Cart;
 use Shopware\Core\Checkout\Cart\LineItem\LineItem;
+use Shopware\Core\Checkout\Order\OrderEntity;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
@@ -31,37 +32,80 @@ class PackageBuilder
 
     public function build(Cart $cart, ?string $salesChannelId): Package
     {
-        $defaultWeight = $this->config->getFloat('defaultProductWeight', 0.5, $salesChannelId);
         $items = [];
+
+        foreach ($cart->getLineItems()->filterFlatByType(LineItem::PRODUCT_LINE_ITEM_TYPE) as $lineItem) {
+            $payload = $lineItem->getPayload();
+            $items[] = [
+                'id' => $lineItem->getId(),
+                'name' => (string)$lineItem->getLabel(),
+                'number' => is_string($payload['productNumber'] ?? null) ? $payload['productNumber'] : '',
+                'weight' => $lineItem->getDeliveryInformation()?->getWeight(),
+                'unitPrice' => $lineItem->getPrice()?->getUnitPrice() ?? 0.0,
+                'quantity' => $lineItem->getQuantity(),
+            ];
+        }
+
+        return $this->fromItems($items, $salesChannelId);
+    }
+
+    /**
+     * The parcel of a placed order, for a re-quote from the Administration.
+     * Needs the order's `lineItems.product` association for the weights.
+     */
+    public function buildForOrder(OrderEntity $order): Package
+    {
+        $items = [];
+
+        foreach ($order->getLineItems()?->filterByType(LineItem::PRODUCT_LINE_ITEM_TYPE) ?? [] as $lineItem) {
+            $payload = $lineItem->getPayload() ?? [];
+            $items[] = [
+                'id' => $lineItem->getId(),
+                'name' => $lineItem->getLabel(),
+                'number' => is_string($payload['productNumber'] ?? null) ? $payload['productNumber'] : '',
+                'weight' => $lineItem->getProduct()?->getWeight(),
+                'unitPrice' => $lineItem->getUnitPrice(),
+                'quantity' => $lineItem->getQuantity(),
+            ];
+        }
+
+        return $this->fromItems($items, $order->getSalesChannelId());
+    }
+
+    /**
+     * @param list<array{id: string, name: string, number: string, weight: ?float, unitPrice: float, quantity: int}> $items
+     */
+    private function fromItems(array $items, ?string $salesChannelId): Package
+    {
+        $defaultWeight = $this->config->getFloat('defaultProductWeight', 0.5, $salesChannelId);
+        $packageItems = [];
         $totalWeight = 0.0;
 
         // Sorted by id so the signature does not depend on line item order.
-        $lineItems = $cart->getLineItems()->filterFlatByType(LineItem::PRODUCT_LINE_ITEM_TYPE);
-        usort($lineItems, static fn (LineItem $a, LineItem $b): int => strcmp($a->getId(), $b->getId()));
+        usort($items, static fn (array $a, array $b): int => strcmp($a['id'], $b['id']));
 
-        foreach ($lineItems as $lineItem) {
-            $weight = $lineItem->getDeliveryInformation()?->getWeight();
+        foreach ($items as $item) {
+            $weight = $item['weight'];
 
             if ($weight === null || $weight <= 0) {
                 $this->logger->notice('Product without weight; using the default product weight.', [
-                    'productId' => $lineItem->getReferencedId(),
+                    'lineItemId' => $item['id'],
                     'salesChannelId' => $salesChannelId,
                 ]);
                 $weight = $defaultWeight;
             }
 
-            $payload = $lineItem->getPayload();
-            $items[] = [
-                'name' => (string)$lineItem->getLabel(),
-                'description' => is_string($payload['productNumber'] ?? null) ? $payload['productNumber'] : '',
+            $packageItems[] = [
+                'name' => $item['name'],
+                'description' => $item['number'],
                 'unit_weight' => (string)$weight,
-                'unit_amount' => (string)($lineItem->getPrice()?->getUnitPrice() ?? 0.0),
-                'quantity' => (string)$lineItem->getQuantity(),
+                'unit_amount' => (string)$item['unitPrice'],
+                'quantity' => (string)$item['quantity'],
             ];
-            $totalWeight += $weight * $lineItem->getQuantity();
+            $totalWeight += $weight * $item['quantity'];
         }
 
-        return new Package($items, $this->dimension($totalWeight, $salesChannelId), $this->config->getString('packageCategoryId', $salesChannelId));
+        return new Package($packageItems, $this->dimension($totalWeight, $salesChannelId), $this->config->getString('packageCategoryId', $salesChannelId));
     }
 
     /**

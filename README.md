@@ -150,6 +150,46 @@ price are written to `kmh_shipbubble_shipment` (status `quoted`, or
 Shipbubble quotes in NGN; a sales channel in another currency gets a
 "not available in this currency" message for this method.
 
+### Shipments in the Administration
+
+The order's General tab shows a **Shipbubble** card per Shipbubble delivery
+(`kmh-shipbubble-order-shipment`), backed by `Shipment/Service/ShipmentService`
+and the routes `POST /api/_action/kmh-shipbubble/shipment/{id}/create|refresh|cancel`
+(ACL `kmh_shipbubble_shipment:update`; viewing needs `kmh_shipbubble_shipment:read`).
+
+- **Create** books the courier with the checkout `request_token`. A token books
+  one label only and may expire, so when the shipment needs a quote, the token
+  is older than 120 h, or Shipbubble rejects it, the delivery is re-quoted
+  (never from the cache), stored as `needs_quote`, and the merchant confirms
+  the new carrier price within 15 minutes before it is booked. The row is
+  locked during booking, so a delivery is never booked twice.
+- **Refresh** reads the label back and applies its status; picked up / in
+  transit ship the order delivery, returned moves it to retour, cancelled
+  cancels it (core states only, a transition the state does not allow is
+  skipped).
+- **Cancel** asks Shipbubble; a refusal is shown with Shipbubble's reason and
+  the status stays.
+- After booking, the Shipbubble order id is added to the delivery's tracking
+  codes; the shipping method's tracking URL points to Shipbubble tracking.
+
+Flow Builder: action `action.kmh.shipbubble.create_shipment` books every
+`quoted` delivery of the order; triggers `kmh_shipbubble.shipment.created` and
+`kmh_shipbubble.shipment.failed` expose the order and `courierName`,
+`trackingUrl`, `status`, `errorMessage`.
+
+`Flow/FlowInstaller` installs every flow the plugin needs, **active**, on
+install and update — no manual Flow Builder setup:
+
+| Flow | Trigger | Does |
+| --- | --- | --- |
+| Shipbubble: create shipment when paid | payment paid | books the courier |
+| Shipbubble: tracking email to customer | shipment created | emails the customer the courier and tracking link |
+| Shipbubble: booking failed alert | shipment failed | emails the shop admin Shipbubble's reason |
+
+Each flow has a fixed id and is only created when missing, so an edited,
+switched-off or deleted flow is left alone by updates. Uninstalling without
+"keep user data" removes the flows and their mail templates.
+
 ### Data model
 
 | Table | Holds |

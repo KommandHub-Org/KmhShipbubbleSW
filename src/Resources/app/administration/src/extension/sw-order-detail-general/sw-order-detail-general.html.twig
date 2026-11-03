@@ -1,0 +1,7 @@
+{% block sw_order_detail_general_line_items_card %}
+    {% parent %}
+
+    <kmh-shipbubble-order-shipment
+        v-if="$route.params.id && acl.can('kmh_shipbubble_shipment.viewer')"
+        :order-id="$route.params.id" />
+{% endblock %}

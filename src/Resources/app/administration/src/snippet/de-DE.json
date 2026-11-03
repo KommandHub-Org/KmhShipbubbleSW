@@ -11,6 +11,50 @@
       "requestFailed": "Die Anfrage an den Shopware-Server ist fehlgeschlagen.",
       "productsWithoutWeight": "Aktive Produkte ohne Gewicht: {count}. Im Checkout wird für sie das Standard-Produktgewicht verwendet, daher können Kurierpreise abweichen.",
       "showProducts": "Produkte anzeigen"
+    },
+    "flow": {
+      "createShipment": "Shipbubble-Sendung erstellen",
+      "createShipmentHelp": "Bucht für jede noch nicht gebuchte Shipbubble-Lieferung der Bestellung den vom Kunden gewählten Kurier. Eine Lieferung, die einen neuen Preis braucht, bestätigen Sie in der Bestellung."
+    },
+    "shipment": {
+      "title": "Shipbubble",
+      "courier": "Kurier",
+      "status": "Status",
+      "charged": "Dem Kunden berechnet",
+      "carrierPrice": "Shipbubble-Preis",
+      "orderId": "Shipbubble-Auftrag",
+      "trackingCode": "Sendungsnummer des Kuriers",
+      "tracking": "Sendungsverfolgung",
+      "openTracking": "Sendungsverfolgung öffnen",
+      "waybill": "Frachtbrief",
+      "downloadWaybill": "Frachtbrief herunterladen",
+      "create": "Sendung erstellen",
+      "refresh": "Status aktualisieren",
+      "cancel": "Sendung stornieren",
+      "requoteTitle": "Neuen Kurierpreis bestätigen",
+      "requoteText": "Das Kurierangebot musste erneuert werden. {courier} kostet jetzt {new} (vorher {old}).",
+      "requoteCharged": "Der vom Kunden bezahlte Versandpreis ändert sich nicht. Sendung zum neuen Preis buchen?",
+      "requoteConfirm": "Sendung buchen",
+      "cancelTitle": "Sendung stornieren?",
+      "cancelText": "Shipbubble kann eine Stornogebühr berechnen, und eine Sendung lässt sich nicht mehr stornieren, sobald der Kurier sie bearbeitet hat.",
+      "cancelConfirm": "Sendung stornieren",
+      "done": {
+        "create": "Sendung bei Shipbubble erstellt.",
+        "refresh": "Status von Shipbubble aktualisiert.",
+        "cancel": "Sendung storniert."
+      },
+      "statuses": {
+        "quoted": "Noch nicht gebucht",
+        "needs_quote": "Neuer Preis nötig",
+        "pending": "Gebucht",
+        "confirmed": "Bestätigt",
+        "picked_up": "Abgeholt",
+        "in_transit": "Unterwegs",
+        "completed": "Zugestellt",
+        "returned": "Retourniert",
+        "cancelled": "Storniert",
+        "failed": "Fehlgeschlagen"
+      }
     }
   },
   "sw-privileges": {

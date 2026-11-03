@@ -161,7 +161,7 @@ class ResourcesTest extends TestCase
         $response = ClientFactory::ok([
             'order_id' => 'SB-1',
             'status' => 'pending',
-            'courier' => ['name' => 'GIG Logistics'],
+            'courier' => ['name' => 'GIG Logistics', 'tracking_code' => 'GIG123'],
             'tracking_url' => 'https://track/SB-1',
         ]);
 
@@ -173,6 +173,7 @@ class ResourcesTest extends TestCase
         static::assertSame('GIG Logistics', $shipment->courierName);
         static::assertSame('https://track/SB-1', $shipment->trackingUrl);
         static::assertNull($shipment->waybillUrl);
+        static::assertSame('GIG123', $shipment->courierTrackingCode);
     }
 
     public function testGetLabelsHandlesPaginatedAndPlainLists(): void
@@ -188,6 +189,7 @@ class ResourcesTest extends TestCase
         static::assertSame('Kwik', $first[0]->courierName);
         static::assertSame('https://w/1.pdf', $first[0]->waybillUrl);
         static::assertSame('SB-2', $second[0]->orderId);
+        static::assertNull($first[0]->courierTrackingCode);
     }
 
     public function testGetLabelsWithoutIdsMakesNoRequest(): void

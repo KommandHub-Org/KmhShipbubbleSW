@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace Kommandhub\ShipbubbleSW;
 
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
+use Kommandhub\ShipbubbleSW\Flow\CreateShipmentAction;
+use Kommandhub\ShipbubbleSW\Flow\FlowInstaller;
 use Kommandhub\ShipbubbleSW\Setting\Service\Config;
 use Kommandhub\ShipbubbleSW\Shipping\Installer\ShippingMethodInstaller;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\Plugin;
+use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\Framework\Plugin\Context\ActivateContext;
 use Shopware\Core\Framework\Plugin\Context\DeactivateContext;
 use Shopware\Core\Framework\Plugin\Context\InstallContext;
@@ -142,6 +146,24 @@ class KmhShipbubbleSW extends Plugin
         $connection->executeStatement('DROP TABLE IF EXISTS `kmh_shipbubble_shipment`');
         // Shopware removes the config domain itself, but not the plugin's own state keys.
         $connection->executeStatement('DELETE FROM `system_config` WHERE `configuration_key` LIKE :prefix', ['prefix' => Config::STATE_KEY . '%']);
+        // The plugin's flows, and any flow using its action or events, would
+        // point at an action or trigger that no longer exists.
+        $connection->executeStatement(
+            'DELETE FROM `flow` WHERE `event_name` LIKE :events OR `id` IN (SELECT `flow_id` FROM (SELECT DISTINCT `flow_id` FROM `flow_sequence` WHERE `action_name` = :action) AS `flows`)',
+            ['events' => 'kmh_shipbubble.%', 'action' => CreateShipmentAction::ACTION_NAME],
+        );
+        $connection->executeStatement(
+            'DELETE FROM `flow` WHERE `id` IN (:ids)',
+            ['ids' => array_map(Uuid::fromHexToBytes(...), FlowInstaller::flowIds())],
+            ['ids' => ArrayParameterType::BINARY],
+        );
+        $mailTypes = ['types' => [FlowInstaller::CREATED_MAIL_TYPE, FlowInstaller::FAILED_MAIL_TYPE]];
+        $connection->executeStatement(
+            'DELETE `mail_template` FROM `mail_template` JOIN `mail_template_type` ON `mail_template_type`.`id` = `mail_template`.`mail_template_type_id` WHERE `mail_template_type`.`technical_name` IN (:types)',
+            $mailTypes,
+            ['types' => ArrayParameterType::STRING],
+        );
+        $connection->executeStatement('DELETE FROM `mail_template_type` WHERE `technical_name` IN (:types)', $mailTypes, ['types' => ArrayParameterType::STRING]);
         // Without this the migrations stay marked as executed, so a reinstall
         // skips them and never recreates the tables.
         $this->removeMigrations();
@@ -153,6 +175,15 @@ class KmhShipbubbleSW extends Plugin
     private function runInstallers(Context $context): void
     {
         $this->shippingMethodInstaller()->install($context);
+
+        $container = $this->requireContainer();
+        /** @var EntityRepository<\Shopware\Core\Content\Flow\FlowCollection> $flowRepository */
+        $flowRepository = $container->get('flow.repository');
+        /** @var EntityRepository<\Shopware\Core\Content\MailTemplate\Aggregate\MailTemplateType\MailTemplateTypeCollection> $mailTemplateTypeRepository */
+        $mailTemplateTypeRepository = $container->get('mail_template_type.repository');
+        /** @var EntityRepository<\Shopware\Core\Content\MailTemplate\MailTemplateCollection> $mailTemplateRepository */
+        $mailTemplateRepository = $container->get('mail_template.repository');
+        (new FlowInstaller($flowRepository, $mailTemplateTypeRepository, $mailTemplateRepository))->install($context);
     }
 
     /**

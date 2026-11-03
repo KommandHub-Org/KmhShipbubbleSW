@@ -14,7 +14,7 @@ services:
     # cannot collide.
     bind:
       Psr\Log\LoggerInterface $logger: '@Kommandhub\ShipbubbleSW\Logging\ConfigurableLogger'
-      Symfony\Contracts\Cache\CacheInterface $cache: '@cache.app'
+      Symfony\Contracts\Cache\CacheInterface $cache: '@kmh_shipbubble.cache'
 
   Kommandhub\ShipbubbleSW\:
     resource: '../../*'
@@ -62,3 +62,13 @@ services:
     public: true
     calls:
       - [setContainer, ['@service_container']]
+
+  Kommandhub\ShipbubbleSW\Administration\Controller\ShipmentController:
+    public: true
+    calls:
+      - [setContainer, ['@service_container']]
+
+  # The key must equal getName(), or Flow Builder silently skips the action.
+  Kommandhub\ShipbubbleSW\Flow\CreateShipmentAction:
+    tags:
+      - { name: 'flow.action', priority: 600, key: 'action.kmh.shipbubble.create_shipment' }

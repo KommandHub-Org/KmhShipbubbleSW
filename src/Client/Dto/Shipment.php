@@ -16,6 +16,7 @@ final class Shipment
         public readonly string $courierName,
         public readonly ?string $trackingUrl,
         public readonly ?string $waybillUrl,
+        public readonly ?string $courierTrackingCode = null,
     ) {
     }
 
@@ -34,6 +35,7 @@ final class Shipment
             $courierName,
             ArrayReader::nullableString($data, 'tracking_url'),
             ArrayReader::nullableString($data, 'waybill_document'),
+            is_array($courier) ? ArrayReader::nullableString($courier, 'tracking_code') : null,
         );
     }
 }

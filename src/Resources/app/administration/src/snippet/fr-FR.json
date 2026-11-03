@@ -11,6 +11,50 @@
       "requestFailed": "The request to the Shopware server failed.",
       "productsWithoutWeight": "Produits actifs sans poids : {count}. Le paiement utilise le poids par défaut pour eux, les prix des coursiers peuvent donc être inexacts.",
       "showProducts": "Afficher les produits"
+    },
+    "flow": {
+      "createShipment": "Créer l'envoi Shipbubble",
+      "createShipmentHelp": "Réserve le coursier Shipbubble choisi par le client pour chaque livraison Shipbubble non encore réservée. Une livraison qui nécessite un nouveau prix est à confirmer dans la commande."
+    },
+    "shipment": {
+      "title": "Shipbubble",
+      "courier": "Coursier",
+      "status": "Statut",
+      "charged": "Facturé au client",
+      "carrierPrice": "Prix Shipbubble",
+      "orderId": "Commande Shipbubble",
+      "trackingCode": "Numéro de suivi du coursier",
+      "tracking": "Suivi",
+      "openTracking": "Ouvrir la page de suivi",
+      "waybill": "Lettre de transport",
+      "downloadWaybill": "Télécharger la lettre de transport",
+      "create": "Créer l'envoi",
+      "refresh": "Actualiser le statut",
+      "cancel": "Annuler l'envoi",
+      "requoteTitle": "Confirmer le nouveau prix",
+      "requoteText": "Le devis du coursier a dû être renouvelé. {courier} coûte maintenant {new} (avant {old}).",
+      "requoteCharged": "Le prix de livraison payé par le client ne change pas. Réserver l'envoi au nouveau prix ?",
+      "requoteConfirm": "Réserver l'envoi",
+      "cancelTitle": "Annuler l'envoi ?",
+      "cancelText": "Shipbubble peut facturer des frais d'annulation, et un envoi ne peut plus être annulé une fois traité par le coursier.",
+      "cancelConfirm": "Annuler l'envoi",
+      "done": {
+        "create": "Envoi créé chez Shipbubble.",
+        "refresh": "Statut actualisé depuis Shipbubble.",
+        "cancel": "Envoi annulé."
+      },
+      "statuses": {
+        "quoted": "Pas encore réservé",
+        "needs_quote": "Nouveau prix requis",
+        "pending": "Réservé",
+        "confirmed": "Confirmé",
+        "picked_up": "Enlevé",
+        "in_transit": "En transit",
+        "completed": "Livré",
+        "returned": "Retourné",
+        "cancelled": "Annulé",
+        "failed": "Échoué"
+      }
     }
   },
   "sw-privileges": {
