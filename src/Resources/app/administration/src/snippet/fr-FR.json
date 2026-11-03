@@ -1,0 +1,22 @@
+{
+  "kmh-shipbubble": {
+    "title": "Shipbubble Courier Delivery for Shopware 6",
+    "config": {
+      "testConnection": "Test connection",
+      "saveFirst": "Save the settings first; the test uses the saved API key.",
+      "connectionOk": "Connected to Shipbubble. Wallet balance: {balance} {currency}",
+      "validateSender": "Validate sender address",
+      "validateSenderHint": "Save first. Shipbubble checks the address; courier prices need a validated sender.",
+      "senderOk": "Sender address validated: {address}",
+      "requestFailed": "The request to the Shopware server failed."
+    }
+  },
+  "sw-privileges": {
+    "additional_permissions": {
+      "shipbubble": {
+        "label": "Shipbubble Courier Delivery for Shopware 6",
+        "manage": "Manage"
+      }
+    }
+  }
+}

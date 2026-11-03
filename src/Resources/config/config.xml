@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/shopware/6.7/src/Core/System/SystemConfig/Schema/config.xsd">
+
+    <card>
+        <title>Shipbubble account</title>
+        <title lang="de-DE">Shipbubble-Konto</title>
+
+        <input-field type="single-select">
+            <name>mode</name>
+            <label>Mode</label>
+            <label lang="de-DE">Modus</label>
+            <defaultValue>sandbox</defaultValue>
+            <helpText>Sandbox uses your Shipbubble test key; no real shipments are booked. Switch to live only after testing.</helpText>
+            <helpText lang="de-DE">Sandbox nutzt Ihren Shipbubble-Testschlüssel; es werden keine echten Sendungen gebucht. Erst nach dem Testen auf Live umstellen.</helpText>
+            <options>
+                <option><id>sandbox</id><name>Sandbox</name><name lang="de-DE">Sandbox</name></option>
+                <option><id>live</id><name>Live</name><name lang="de-DE">Live</name></option>
+            </options>
+        </input-field>
+
+        <input-field type="password">
+            <name>sandboxApiKey</name>
+            <label>Sandbox API key</label>
+            <label lang="de-DE">Sandbox-API-Schlüssel</label>
+            <helpText>Starts with sb_sandbox_. Found in your Shipbubble dashboard under API keys.</helpText>
+            <helpText lang="de-DE">Beginnt mit sb_sandbox_. Zu finden im Shipbubble-Dashboard unter API-Schlüssel.</helpText>
+        </input-field>
+
+        <input-field type="password">
+            <name>liveApiKey</name>
+            <label>Live API key</label>
+            <label lang="de-DE">Live-API-Schlüssel</label>
+            <helpText>Starts with sb_prod_. Shipments booked in live mode are paid from your Shipbubble wallet.</helpText>
+            <helpText lang="de-DE">Beginnt mit sb_prod_. Im Live-Modus gebuchte Sendungen werden aus Ihrem Shipbubble-Wallet bezahlt.</helpText>
+        </input-field>
+
+        <input-field type="password">
+            <name>webhookSecret</name>
+            <label>Webhook secret</label>
+            <label lang="de-DE">Webhook-Secret</label>
+            <helpText>Used to verify that status updates really come from Shipbubble.</helpText>
+            <helpText lang="de-DE">Damit wird geprüft, dass Statusmeldungen wirklich von Shipbubble kommen.</helpText>
+        </input-field>
+
+        <component name="kmh-shipbubble-connection-test">
+            <name>connectionTest</name>
+        </component>
+    </card>
+
+    <card>
+        <title>Sender (pickup address)</title>
+        <title lang="de-DE">Absender (Abholadresse)</title>
+
+        <input-field type="text">
+            <name>senderName</name>
+            <label>Name</label>
+            <label lang="de-DE">Name</label>
+        </input-field>
+
+        <input-field type="text">
+            <name>senderPhone</name>
+            <label>Phone</label>
+            <label lang="de-DE">Telefon</label>
+        </input-field>
+
+        <input-field type="text">
+            <name>senderEmail</name>
+            <label>Email</label>
+            <label lang="de-DE">E-Mail</label>
+        </input-field>
+
+        <input-field type="text">
+            <name>senderAddress</name>
+            <label>Street address</label>
+            <label lang="de-DE">Straße und Hausnummer</label>
+        </input-field>
+
+        <input-field type="text">
+            <name>senderCity</name>
+            <label>City</label>
+            <label lang="de-DE">Stadt</label>
+        </input-field>
+
+        <input-field type="text">
+            <name>senderState</name>
+            <label>State</label>
+            <label lang="de-DE">Bundesstaat</label>
+        </input-field>
+
+        <input-field type="text">
+            <name>senderCountry</name>
+            <label>Country code</label>
+            <label lang="de-DE">Ländercode</label>
+            <defaultValue>NG</defaultValue>
+        </input-field>
+
+        <component name="kmh-shipbubble-sender-validation">
+            <name>senderValidation</name>
+        </component>
+    </card>
+
+    <card>
+        <title>Couriers and packages</title>
+        <title lang="de-DE">Kuriere und Pakete</title>
+
+        <component name="kmh-shipbubble-api-select">
+            <name>enabledCouriers</name>
+            <source>couriers</source>
+            <multiple>true</multiple>
+            <label>Couriers offered at checkout</label>
+            <label lang="de-DE">Im Checkout angebotene Kuriere</label>
+            <helpText>Leave empty to offer every courier Shipbubble quotes.</helpText>
+            <helpText lang="de-DE">Leer lassen, um alle Kuriere anzubieten, die Shipbubble anbietet.</helpText>
+        </component>
+
+        <component name="kmh-shipbubble-api-select">
+            <name>packageCategoryId</name>
+            <source>package-categories</source>
+            <label>Package category</label>
+            <label lang="de-DE">Paketkategorie</label>
+            <helpText>What your shop usually sends. Couriers price and accept parcels by category.</helpText>
+            <helpText lang="de-DE">Was Ihr Shop üblicherweise versendet. Kuriere bepreisen und akzeptieren Pakete nach Kategorie.</helpText>
+        </component>
+
+        <input-field type="float">
+            <name>defaultProductWeight</name>
+            <label>Default product weight (kg)</label>
+            <label lang="de-DE">Standard-Produktgewicht (kg)</label>
+            <defaultValue>0.5</defaultValue>
+            <min>0.01</min>
+            <helpText>Used for products without a weight.</helpText>
+            <helpText lang="de-DE">Wird für Produkte ohne Gewicht verwendet.</helpText>
+        </input-field>
+
+        <input-field type="int">
+            <name>defaultLength</name>
+            <label>Default box length (cm)</label>
+            <label lang="de-DE">Standard-Kartonlänge (cm)</label>
+            <defaultValue>56</defaultValue>
+            <min>1</min>
+        </input-field>
+
+        <input-field type="int">
+            <name>defaultWidth</name>
+            <label>Default box width (cm)</label>
+            <label lang="de-DE">Standard-Kartonbreite (cm)</label>
+            <defaultValue>50</defaultValue>
+            <min>1</min>
+        </input-field>
+
+        <input-field type="int">
+            <name>defaultHeight</name>
+            <label>Default box height (cm)</label>
+            <label lang="de-DE">Standard-Kartonhöhe (cm)</label>
+            <defaultValue>45</defaultValue>
+            <min>1</min>
+        </input-field>
+    </card>
+
+    <card>
+        <title>Checkout price</title>
+        <title lang="de-DE">Preis im Checkout</title>
+
+        <input-field type="single-select">
+            <name>markupType</name>
+            <label>Markup</label>
+            <label lang="de-DE">Aufschlag</label>
+            <defaultValue>none</defaultValue>
+            <options>
+                <option><id>none</id><name>None</name><name lang="de-DE">Kein Aufschlag</name></option>
+                <option><id>fixed</id><name>Fixed amount</name><name lang="de-DE">Fester Betrag</name></option>
+                <option><id>percent</id><name>Percentage</name><name lang="de-DE">Prozentsatz</name></option>
+            </options>
+        </input-field>
+
+        <input-field type="float">
+            <name>markupValue</name>
+            <label>Markup value</label>
+            <label lang="de-DE">Aufschlagswert</label>
+            <defaultValue>0</defaultValue>
+            <min>0</min>
+            <helpText>Added to the courier price shown at checkout. Amount in the sales channel currency, or percent.</helpText>
+            <helpText lang="de-DE">Wird zum Kurierpreis im Checkout addiert. Betrag in der Währung des Verkaufskanals oder Prozent.</helpText>
+        </input-field>
+
+        <input-field type="float">
+            <name>fallbackPrice</name>
+            <label>Fallback price when Shipbubble is unavailable</label>
+            <label lang="de-DE">Ersatzpreis, wenn Shipbubble nicht erreichbar ist</label>
+            <defaultValue>0</defaultValue>
+            <min>0</min>
+            <helpText>0 = no fallback: customers choose another delivery method. Above 0: this price is charged and you book the courier manually.</helpText>
+            <helpText lang="de-DE">0 = kein Ersatzpreis: Kunden wählen eine andere Versandart. Über 0: dieser Preis wird berechnet und Sie buchen den Kurier manuell.</helpText>
+        </input-field>
+
+        <input-field type="int">
+            <name>quoteCacheTtl</name>
+            <label>Quote cache time (seconds)</label>
+            <label lang="de-DE">Cache-Dauer für Angebote (Sekunden)</label>
+            <defaultValue>1800</defaultValue>
+            <min>60</min>
+            <helpText>How long a courier quote is reused for an unchanged cart and address.</helpText>
+            <helpText lang="de-DE">Wie lange ein Kurierangebot für unveränderten Warenkorb und Adresse wiederverwendet wird.</helpText>
+        </input-field>
+    </card>
+
+    <card>
+        <title>Logging</title>
+        <title lang="de-DE">Protokollierung</title>
+
+        <input-field type="bool">
+            <name>enableDebugging</name>
+            <label>Enable debug logging</label>
+            <label lang="de-DE">Debug-Protokollierung aktivieren</label>
+            <defaultValue>false</defaultValue>
+            <helpText>
+                Writes debug, info and warning entries to var/log/kmh_shipbubble_*.log.
+                Errors are always logged regardless of this setting. API keys are never logged.
+            </helpText>
+            <helpText lang="de-DE">
+                Schreibt Debug-, Info- und Warnungseinträge nach
+                var/log/kmh_shipbubble_*.log. Fehler werden immer protokolliert.
+                API-Schlüssel werden nie protokolliert.
+            </helpText>
+        </input-field>
+
+        <input-field type="multi-select">
+            <name>logLevels</name>
+            <label>Log levels</label>
+            <label lang="de-DE">Protokollstufen</label>
+            <helpText>
+                Restrict debug logging to specific PSR-3 levels. Leave empty to
+                log every level once debug logging is enabled.
+            </helpText>
+            <options>
+                <option><id>debug</id><name>Debug</name></option>
+                <option><id>info</id><name>Info</name></option>
+                <option><id>notice</id><name>Notice</name></option>
+                <option><id>warning</id><name>Warning</name></option>
+            </options>
+        </input-field>
+    </card>
+</config>

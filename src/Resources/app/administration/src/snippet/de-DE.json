@@ -1,0 +1,22 @@
+{
+  "kmh-shipbubble": {
+    "title": "Shipbubble Kurierversand für Shopware 6",
+    "config": {
+      "testConnection": "Verbindung testen",
+      "saveFirst": "Zuerst speichern; der Test verwendet den gespeicherten API-Schlüssel.",
+      "connectionOk": "Mit Shipbubble verbunden. Wallet-Guthaben: {balance} {currency}",
+      "validateSender": "Absenderadresse prüfen",
+      "validateSenderHint": "Zuerst speichern. Shipbubble prüft die Adresse; Kurierpreise brauchen einen geprüften Absender.",
+      "senderOk": "Absenderadresse geprüft: {address}",
+      "requestFailed": "Die Anfrage an den Shopware-Server ist fehlgeschlagen."
+    }
+  },
+  "sw-privileges": {
+    "additional_permissions": {
+      "shipbubble": {
+        "label": "Shipbubble Kurierversand für Shopware 6",
+        "manage": "Manage"
+      }
+    }
+  }
+}
