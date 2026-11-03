@@ -8,7 +8,9 @@
       "validateSender": "Absenderadresse prüfen",
       "validateSenderHint": "Zuerst speichern. Shipbubble prüft die Adresse; Kurierpreise brauchen einen geprüften Absender.",
       "senderOk": "Absenderadresse geprüft: {address}",
-      "requestFailed": "Die Anfrage an den Shopware-Server ist fehlgeschlagen."
+      "requestFailed": "Die Anfrage an den Shopware-Server ist fehlgeschlagen.",
+      "productsWithoutWeight": "Aktive Produkte ohne Gewicht: {count}. Im Checkout wird für sie das Standard-Produktgewicht verwendet, daher können Kurierpreise abweichen.",
+      "showProducts": "Produkte anzeigen"
     }
   },
   "sw-privileges": {

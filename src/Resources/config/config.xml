@@ -123,6 +123,10 @@
             <helpText lang="de-DE">Was Ihr Shop üblicherweise versendet. Kuriere bepreisen und akzeptieren Pakete nach Kategorie.</helpText>
         </component>
 
+        <component name="kmh-shipbubble-weight-warning">
+            <name>weightWarning</name>
+        </component>
+
         <input-field type="float">
             <name>defaultProductWeight</name>
             <label>Default product weight (kg)</label>

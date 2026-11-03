@@ -8,7 +8,9 @@
       "validateSender": "Validate sender address",
       "validateSenderHint": "Save first. Shipbubble checks the address; courier prices need a validated sender.",
       "senderOk": "Sender address validated: {address}",
-      "requestFailed": "The request to the Shopware server failed."
+      "requestFailed": "The request to the Shopware server failed.",
+      "productsWithoutWeight": "Produits actifs sans poids : {count}. Le paiement utilise le poids par défaut pour eux, les prix des coursiers peuvent donc être inexacts.",
+      "showProducts": "Afficher les produits"
     }
   },
   "sw-privileges": {

@@ -125,6 +125,31 @@ the route.
 Add a new call by adding a method to the matching `Resource/` class — never by
 issuing HTTP from a service.
 
+### Checkout
+
+When the customer selects "Courier delivery (Shipbubble)", the cart processor
+`Shipping/ShipbubbleDeliveryProcessor` (priority -6000, after the core delivery
+processor) prices the delivery through `Quote/QuoteService`:
+
+1. The shipping address is validated with Shipbubble once and its address code
+   cached for 30 days (an address Shipbubble rejects: for an hour). Street,
+   city, country and **phone** are required.
+2. The parcel is built from the product line items (`Quote/PackageBuilder`):
+   weight in kg (default product weight when missing), unit price, quantity,
+   the first standard Shipbubble box that carries the weight.
+3. Rates are fetched and cached for the configured quote cache time, keyed by
+   sender, receiver, parcel, currency and enabled couriers.
+4. The customer's courier (stored in the sales-channel context, never a price)
+   or the cheapest one sets the shipping cost: carrier total plus markup.
+
+The quote shows on the confirm page as a courier list under the method. On
+order placement the chosen courier, `request_token`, carrier price and charged
+price are written to `kmh_shipbubble_shipment` (status `quoted`, or
+`needs_quote` when the fallback price was charged).
+
+Shipbubble quotes in NGN; a sales channel in another currency gets a
+"not available in this currency" message for this method.
+
 ### Data model
 
 | Table | Holds |

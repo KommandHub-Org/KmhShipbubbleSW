@@ -16,3 +16,4 @@ import './acl';
 import './component/kmh-shipbubble-connection-test';
 import './component/kmh-shipbubble-sender-validation';
 import './component/kmh-shipbubble-api-select';
+import './component/kmh-shipbubble-weight-warning';

@@ -9,6 +9,7 @@ use Kommandhub\ShipbubbleSW\Client\Dto\ValidatedAddress;
 use Kommandhub\ShipbubbleSW\Client\ShipbubbleClient;
 use Kommandhub\ShipbubbleSW\Exception\ShipbubbleApiException;
 use Kommandhub\ShipbubbleSW\Setting\Service\Config;
+use Kommandhub\ShipbubbleSW\Shipping\Address\AddressLine;
 
 /**
  * Validates the sales channel's sender address with Shipbubble and stores the
@@ -37,13 +38,11 @@ class SenderAddressService
             throw new ShipbubbleApiException(ApiErrorReason::Validation, 'Sender name, phone, email and address are required.');
         }
 
-        // Shipbubble geocodes a single address line; give it every part we have.
-        $address = implode(', ', array_filter([
+        $address = AddressLine::build([
             $street,
             $this->config->getString('senderCity', $salesChannelId),
             $this->config->getString('senderState', $salesChannelId),
-            self::countryName($this->config->getString('senderCountry', $salesChannelId) ?: 'NG'),
-        ], static fn (string $part): bool => $part !== ''));
+        ], $this->config->getString('senderCountry', $salesChannelId) ?: 'NG');
 
         $validated = $this->client->addresses()->validate($name, $email, $phone, $address, null, $salesChannelId);
 
@@ -54,18 +53,5 @@ class SenderAddressService
         $this->config->setSenderAddressCode($validated->addressCode, $salesChannelId);
 
         return $validated;
-    }
-
-    /**
-     * Shipbubble's geocoder rejects an ISO code ("NG") but accepts the English
-     * country name ("Nigeria"). Anything that is not a two-letter code is passed on.
-     */
-    private static function countryName(string $country): string
-    {
-        if (preg_match('/^[A-Za-z]{2}$/', $country) !== 1) {
-            return $country;
-        }
-
-        return \Locale::getDisplayRegion('-' . $country, 'en') ?: $country;
     }
 }

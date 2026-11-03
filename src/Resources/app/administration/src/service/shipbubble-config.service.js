@@ -27,6 +27,12 @@ export default class ShipbubbleConfigService extends Classes.ApiService {
             .then((response) => Classes.ApiService.handleResponse(response));
     }
 
+    productsWithoutWeight() {
+        return this.httpClient
+            .get('_action/kmh-shipbubble/products-without-weight', { headers: this.getBasicHeaders() })
+            .then((response) => Classes.ApiService.handleResponse(response));
+    }
+
     post(action, salesChannelId) {
         return this.httpClient
             .post(`_action/kmh-shipbubble/${action}`, { salesChannelId }, { headers: this.getBasicHeaders() })

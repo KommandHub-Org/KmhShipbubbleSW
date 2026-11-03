@@ -1,5 +1,18 @@
 {
   "kmh-shipbubble": {
     "title": "Shipbubble Courier Delivery for Shopware 6"
+  },
+  "kmhShipbubble": {
+    "checkout": {
+      "chooseCourier": "Choose a courier"
+    }
+  },
+  "checkout": {
+    "kmh-shipbubble-incomplete_address": "Please complete your delivery address, including a phone number, to use courier delivery.",
+    "kmh-shipbubble-invalid_address": "We could not find your delivery address for courier delivery. Please check it or choose another delivery method.",
+    "kmh-shipbubble-unavailable": "Courier delivery is temporarily unavailable. Please choose another delivery method.",
+    "kmh-shipbubble-no_couriers": "No courier delivers to your address. Please choose another delivery method.",
+    "kmh-shipbubble-currency_mismatch": "Courier delivery is not available in this currency. Please choose another delivery method.",
+    "kmh-shipbubble-not_configured": "Courier delivery is currently unavailable. Please choose another delivery method."
   }
 }

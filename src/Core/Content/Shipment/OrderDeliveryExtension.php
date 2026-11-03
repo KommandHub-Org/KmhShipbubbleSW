@@ -17,6 +17,8 @@ use Shopware\Core\Framework\DataAbstractionLayer\FieldCollection;
  */
 class OrderDeliveryExtension extends EntityExtension
 {
+    public const PROPERTY = 'kmhShipbubbleShipment';
+
     public function getEntityName(): string
     {
         return OrderDeliveryDefinition::ENTITY_NAME;
@@ -25,7 +27,7 @@ class OrderDeliveryExtension extends EntityExtension
     public function extendFields(FieldCollection $collection): void
     {
         $collection->add(
-            (new OneToOneAssociationField('kmhShipbubbleShipment', 'id', 'order_delivery_id', ShipmentDefinition::class, false))
+            (new OneToOneAssociationField(self::PROPERTY, 'id', 'order_delivery_id', ShipmentDefinition::class, false))
                 // cloneRelevant: false — otherwise Shopware copies the row (same
                 // id) into every order version, so opening the order in the
                 // Administration moves the shipment onto the draft version and

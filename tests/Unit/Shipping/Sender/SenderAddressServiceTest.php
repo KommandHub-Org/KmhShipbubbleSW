@@ -13,6 +13,7 @@ use Kommandhub\ShipbubbleSW\Client\Resource\ApiResource;
 use Kommandhub\ShipbubbleSW\Client\ShipbubbleClient;
 use Kommandhub\ShipbubbleSW\Exception\ShipbubbleApiException;
 use Kommandhub\ShipbubbleSW\Setting\Service\Config;
+use Kommandhub\ShipbubbleSW\Shipping\Address\AddressLine;
 use Kommandhub\ShipbubbleSW\Shipping\Sender\SenderAddressService;
 use Kommandhub\ShipbubbleSW\Tests\Unit\Client\ClientFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -23,6 +24,7 @@ use Symfony\Component\HttpClient\Response\MockResponse;
 
 #[CoversClass(SenderAddressService::class)]
 #[UsesClass(Config::class)]
+#[UsesClass(AddressLine::class)]
 #[UsesClass(ShipbubbleClient::class)]
 #[UsesClass(ShipbubbleHttpClient::class)]
 #[UsesClass(Addresses::class)]

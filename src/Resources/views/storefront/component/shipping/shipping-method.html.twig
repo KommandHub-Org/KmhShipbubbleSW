@@ -1,0 +1,48 @@
+{% sw_extends '@Storefront/storefront/component/shipping/shipping-method.html.twig' %}
+
+{% block component_shipping_method_control %}
+    {{ parent() }}
+
+    {% block kmh_shipbubble_courier_picker %}
+        {% set kmhShipbubbleQuote = page.cart.deliveries.first.extensions.kmhShipbubbleQuote ?? null %}
+
+        {% if shipping.technicalName is same as('kmh_shipbubble_courier')
+            and shipping.id is same as(selectedShippingMethodId)
+            and kmhShipbubbleQuote
+            and kmhShipbubbleQuote.couriers is not empty %}
+            <fieldset class="kmh-shipbubble-couriers mt-2 ms-4">
+                {% block kmh_shipbubble_courier_picker_legend %}
+                    <legend class="fs-6 mb-2">{{ 'kmhShipbubble.checkout.chooseCourier'|trans|sw_sanitize }}</legend>
+                {% endblock %}
+
+                {% for courier in kmhShipbubbleQuote.couriers %}
+                    {% block kmh_shipbubble_courier_picker_option %}
+                        {% set courierInputId = 'kmhShipbubbleCourier' ~ loop.index %}
+                        <div class="form-check d-flex align-items-start gap-2 mb-2">
+                            <input type="radio"
+                                   id="{{ courierInputId }}"
+                                   name="kmhShipbubbleCourier"
+                                   value="{{ courier.key }}"
+                                   class="form-check-input shipping-method-input flex-shrink-0"
+                                   {% if kmhShipbubbleQuote.selected and kmhShipbubbleQuote.selected.key is same as(courier.key) %}checked{% endif %}>
+                            <label class="form-check-label d-flex align-items-start gap-2 w-100" for="{{ courierInputId }}">
+                                {% block kmh_shipbubble_courier_picker_logo %}
+                                    {% if courier.courierImage %}
+                                        <img src="{{ courier.courierImage }}" alt="" width="32" height="32" loading="lazy" class="flex-shrink-0">
+                                    {% endif %}
+                                {% endblock %}
+                                <span class="flex-grow-1 text-break">
+                                    <strong class="d-block">{{ courier.courierName }}</strong>
+                                    {% if courier.deliveryEta %}
+                                        <small class="d-block text-muted">{{ courier.deliveryEta }}</small>
+                                    {% endif %}
+                                    <span class="d-block fw-bold">{{ courier.price|currency }}</span>
+                                </span>
+                            </label>
+                        </div>
+                    {% endblock %}
+                {% endfor %}
+            </fieldset>
+        {% endif %}
+    {% endblock %}
+{% endblock %}

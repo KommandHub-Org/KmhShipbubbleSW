@@ -14,6 +14,7 @@ services:
     # cannot collide.
     bind:
       Psr\Log\LoggerInterface $logger: '@Kommandhub\ShipbubbleSW\Logging\ConfigurableLogger'
+      Symfony\Contracts\Cache\CacheInterface $cache: '@cache.app'
 
   Kommandhub\ShipbubbleSW\:
     resource: '../../*'
@@ -47,8 +48,17 @@ services:
     tags:
       - { name: 'shopware.scheduled.task' }
 
+  # After the core DeliveryProcessor (-5000), which builds the deliveries.
+  Kommandhub\ShipbubbleSW\Shipping\ShipbubbleDeliveryProcessor:
+    tags:
+      - { name: 'shopware.cart.processor', priority: -6000 }
+
   Kommandhub\ShipbubbleSW\Administration\Controller\ConnectionController:
     public: true
     calls:
       - [setContainer, ['@service_container']]
 
+  Kommandhub\ShipbubbleSW\Administration\Controller\ProductWeightController:
+    public: true
+    calls:
+      - [setContainer, ['@service_container']]
