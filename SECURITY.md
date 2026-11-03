@@ -1,16 +1,17 @@
 # Security Policy
 
-This plugin handles payments. A vulnerability here can affect real money and
-real customer data, so please treat security reports with care.
+This plugin holds the merchant's Shipbubble API keys, books shipments paid from
+the merchant's Shipbubble wallet, and receives webhooks with customer addresses.
+A vulnerability here can cost real money and expose customer data, so please
+treat security reports with care.
 
 ## Supported versions
 
-Security fixes are provided for the latest released minor version. While the
-plugin is pre-`1.0.0` (`0.x`), only the most recent release is supported.
+Security fixes are provided for the latest released minor version.
 
 | Version | Supported |
 | ------- | --------- |
-| Latest `0.x` release | ✅ |
+| `1.x` (latest release) | ✅ |
 | Older releases | ❌ |
 
 ## Reporting a vulnerability

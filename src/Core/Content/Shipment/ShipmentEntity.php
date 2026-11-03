@@ -75,9 +75,19 @@ class ShipmentEntity extends Entity
         return $this->orderId;
     }
 
+    public function setOrderId(string $orderId): void
+    {
+        $this->orderId = $orderId;
+    }
+
     public function getOrderVersionId(): string
     {
         return $this->orderVersionId;
+    }
+
+    public function setOrderVersionId(string $orderVersionId): void
+    {
+        $this->orderVersionId = $orderVersionId;
     }
 
     public function getOrderDeliveryId(): string
@@ -85,9 +95,19 @@ class ShipmentEntity extends Entity
         return $this->orderDeliveryId;
     }
 
+    public function setOrderDeliveryId(string $orderDeliveryId): void
+    {
+        $this->orderDeliveryId = $orderDeliveryId;
+    }
+
     public function getOrderDeliveryVersionId(): string
     {
         return $this->orderDeliveryVersionId;
+    }
+
+    public function setOrderDeliveryVersionId(string $orderDeliveryVersionId): void
+    {
+        $this->orderDeliveryVersionId = $orderDeliveryVersionId;
     }
 
     public function getSalesChannelId(): string
@@ -95,9 +115,19 @@ class ShipmentEntity extends Entity
         return $this->salesChannelId;
     }
 
+    public function setSalesChannelId(string $salesChannelId): void
+    {
+        $this->salesChannelId = $salesChannelId;
+    }
+
     public function getMode(): string
     {
         return $this->mode;
+    }
+
+    public function setMode(string $mode): void
+    {
+        $this->mode = $mode;
     }
 
     public function getStatus(): string
@@ -105,9 +135,19 @@ class ShipmentEntity extends Entity
         return $this->status;
     }
 
+    public function setStatus(string $status): void
+    {
+        $this->status = $status;
+    }
+
     public function getCourierId(): ?string
     {
         return $this->courierId;
+    }
+
+    public function setCourierId(?string $courierId): void
+    {
+        $this->courierId = $courierId;
     }
 
     public function getCourierName(): ?string
@@ -115,9 +155,19 @@ class ShipmentEntity extends Entity
         return $this->courierName;
     }
 
+    public function setCourierName(?string $courierName): void
+    {
+        $this->courierName = $courierName;
+    }
+
     public function getServiceCode(): ?string
     {
         return $this->serviceCode;
+    }
+
+    public function setServiceCode(?string $serviceCode): void
+    {
+        $this->serviceCode = $serviceCode;
     }
 
     public function getRequestToken(): ?string
@@ -125,9 +175,19 @@ class ShipmentEntity extends Entity
         return $this->requestToken;
     }
 
+    public function setRequestToken(?string $requestToken): void
+    {
+        $this->requestToken = $requestToken;
+    }
+
     public function getQuotedAt(): ?\DateTimeInterface
     {
         return $this->quotedAt;
+    }
+
+    public function setQuotedAt(?\DateTimeInterface $quotedAt): void
+    {
+        $this->quotedAt = $quotedAt;
     }
 
     public function getQuotedAmount(): ?float
@@ -135,9 +195,19 @@ class ShipmentEntity extends Entity
         return $this->quotedAmount;
     }
 
+    public function setQuotedAmount(?float $quotedAmount): void
+    {
+        $this->quotedAmount = $quotedAmount;
+    }
+
     public function getChargedAmount(): ?float
     {
         return $this->chargedAmount;
+    }
+
+    public function setChargedAmount(?float $chargedAmount): void
+    {
+        $this->chargedAmount = $chargedAmount;
     }
 
     public function getCurrency(): ?string
@@ -145,9 +215,19 @@ class ShipmentEntity extends Entity
         return $this->currency;
     }
 
+    public function setCurrency(?string $currency): void
+    {
+        $this->currency = $currency;
+    }
+
     public function getShipbubbleOrderId(): ?string
     {
         return $this->shipbubbleOrderId;
+    }
+
+    public function setShipbubbleOrderId(?string $shipbubbleOrderId): void
+    {
+        $this->shipbubbleOrderId = $shipbubbleOrderId;
     }
 
     public function getTrackingUrl(): ?string
@@ -155,9 +235,19 @@ class ShipmentEntity extends Entity
         return $this->trackingUrl;
     }
 
+    public function setTrackingUrl(?string $trackingUrl): void
+    {
+        $this->trackingUrl = $trackingUrl;
+    }
+
     public function getWaybillUrl(): ?string
     {
         return $this->waybillUrl;
+    }
+
+    public function setWaybillUrl(?string $waybillUrl): void
+    {
+        $this->waybillUrl = $waybillUrl;
     }
 
     public function getCod(): ?bool
@@ -165,9 +255,19 @@ class ShipmentEntity extends Entity
         return $this->cod;
     }
 
+    public function setCod(?bool $cod): void
+    {
+        $this->cod = $cod;
+    }
+
     public function getInsuranceCode(): ?string
     {
         return $this->insuranceCode;
+    }
+
+    public function setInsuranceCode(?string $insuranceCode): void
+    {
+        $this->insuranceCode = $insuranceCode;
     }
 
     public function getErrorCode(): ?string
@@ -175,9 +275,19 @@ class ShipmentEntity extends Entity
         return $this->errorCode;
     }
 
+    public function setErrorCode(?string $errorCode): void
+    {
+        $this->errorCode = $errorCode;
+    }
+
     public function getErrorMessage(): ?string
     {
         return $this->errorMessage;
+    }
+
+    public function setErrorMessage(?string $errorMessage): void
+    {
+        $this->errorMessage = $errorMessage;
     }
 
     /**
@@ -188,9 +298,22 @@ class ShipmentEntity extends Entity
         return $this->lastPayload;
     }
 
+    /**
+     * @param array<mixed>|null $lastPayload
+     */
+    public function setLastPayload(?array $lastPayload): void
+    {
+        $this->lastPayload = $lastPayload;
+    }
+
     public function getDeliveredAt(): ?\DateTimeInterface
     {
         return $this->deliveredAt;
+    }
+
+    public function setDeliveredAt(?\DateTimeInterface $deliveredAt): void
+    {
+        $this->deliveredAt = $deliveredAt;
     }
 
     public function getCancelledAt(): ?\DateTimeInterface
@@ -198,13 +321,28 @@ class ShipmentEntity extends Entity
         return $this->cancelledAt;
     }
 
+    public function setCancelledAt(?\DateTimeInterface $cancelledAt): void
+    {
+        $this->cancelledAt = $cancelledAt;
+    }
+
     public function getOrder(): ?OrderEntity
     {
         return $this->order;
     }
 
+    public function setOrder(?OrderEntity $order): void
+    {
+        $this->order = $order;
+    }
+
     public function getOrderDelivery(): ?OrderDeliveryEntity
     {
         return $this->orderDelivery;
+    }
+
+    public function setOrderDelivery(?OrderDeliveryEntity $orderDelivery): void
+    {
+        $this->orderDelivery = $orderDelivery;
     }
 }

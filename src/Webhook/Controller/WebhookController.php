@@ -9,6 +9,7 @@ use Kommandhub\ShipbubbleSW\Webhook\Service\WebhookSignatureValidator;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\PlatformRequest;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -45,9 +46,9 @@ class WebhookController extends AbstractController
         if ($result === WebhookReceiver::INVALID_SIGNATURE || $result === WebhookReceiver::INVALID_PAYLOAD) {
             $this->logger->warning('Shipbubble webhook rejected.', ['reason' => $result, 'ip' => $request->getClientIp()]);
 
-            return new Response('', $result === WebhookReceiver::INVALID_SIGNATURE ? Response::HTTP_UNAUTHORIZED : Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['status' => $result], $result === WebhookReceiver::INVALID_SIGNATURE ? Response::HTTP_UNAUTHORIZED : Response::HTTP_BAD_REQUEST);
         }
 
-        return new Response('', Response::HTTP_OK);
+        return new JsonResponse(['status' => $result]);
     }
 }

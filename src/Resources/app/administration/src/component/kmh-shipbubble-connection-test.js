@@ -38,7 +38,7 @@ Shopware.Component.register('kmh-shipbubble-connection-test', {
                 } else {
                     this.createNotificationError({ message: result.message });
                 }
-            } catch (e) {
+            } catch {
                 this.createNotificationError({ message: this.$tc('kmh-shipbubble.config.requestFailed') });
             } finally {
                 this.isLoading = false;

@@ -1,5 +1,5 @@
 <!--
-Thanks for contributing! Please target the `develop` branch.
+Thanks for contributing! Please target the `main` branch.
 See CONTRIBUTING.md before opening this PR.
 -->
 

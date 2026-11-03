@@ -19,7 +19,7 @@ Shopware.Component.register('kmh-shipbubble-weight-warning', {
     async created() {
         try {
             this.count = (await this.kmhShipbubbleConfigService.productsWithoutWeight()).count;
-        } catch (e) {
+        } catch {
             // Without product read access there is nothing to warn about.
             this.count = 0;
         }

@@ -1,13 +1,23 @@
 # Shipbubble Courier Delivery for Shopware 6
 
-Live courier rates from Shipbubble at checkout, shipment booking and tracking, on the merchant's own Shipbubble account.
+Live Shipbubble courier rates at checkout, shipment booking from the order,
+tracking emails and automatic delivery status updates — all on the merchant's
+own Shipbubble account. Free and open source.
 
-[![Shopware](https://img.shields.io/badge/Shopware-~6.7.0-189eff)](https://www.shopware.com/)
+[![CI](https://github.com/KommandHub-Org/KmhShipbubbleSW/actions/workflows/php.yml/badge.svg?branch=main)](https://github.com/KommandHub-Org/KmhShipbubbleSW/actions/workflows/php.yml)
+[![Release](https://img.shields.io/github/v/release/KommandHub-Org/KmhShipbubbleSW?sort=semver)](https://github.com/KommandHub-Org/KmhShipbubbleSW/releases)
+[![Shopware](https://img.shields.io/badge/Shopware-6.7-189eff)](https://www.shopware.com/)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-777bb4)](https://www.php.net/)
-[![License](https://img.shields.io/badge/license-Apache-2.0-blue)](LICENSE)
+[![PHPStan](https://img.shields.io/badge/PHPStan-level%209-brightgreen)](phpstan.dist.neon)
+[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](.github/workflows/php.yml)
+[![License](https://img.shields.io/github/license/KommandHub-Org/KmhShipbubbleSW)](LICENSE)
+
+PHPStan level and coverage are enforced on every push by the CI workflow; the
+build fails below 100% line coverage.
 
 ## Table of contents
 
+- [What it does](#what-it-does)
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Configuration](#configuration)
@@ -24,6 +34,24 @@ Live courier rates from Shipbubble at checkout, shipment booking and tracking, o
 - [Contributing](#contributing)
 - [License](#license)
 
+## What it does
+
+- **Checkout:** customers pick a courier under "Courier delivery (Shipbubble)"
+  — logo, delivery estimate and live price (plus your optional markup). The
+  price always comes from the plugin's own Shipbubble quote, never from the
+  browser.
+- **Orders:** a Shipbubble card on the order books the courier (or the
+  "create shipment when paid" flow does it automatically), shows the tracking
+  link, courier tracking number and waybill, refreshes the status and cancels.
+- **Tracking:** the Shipbubble order id becomes the order's tracking code,
+  linked to Shipbubble's tracking page in the customer account and mails.
+- **Status updates:** Shipbubble webhooks move the order's delivery status
+  (shipped, retour, cancelled) and trigger mails — no polling.
+- **No manual setup:** the flows it needs are installed with the plugin.
+
+You pay couriers from your own Shipbubble wallet; the plugin never collects or
+relays delivery fees.
+
 ## Requirements
 
 | | |
@@ -31,50 +59,129 @@ Live courier rates from Shipbubble at checkout, shipment booking and tracking, o
 | Shopware | `~6.7.0` |
 | PHP | 8.2 or newer |
 | Database | MySQL 8.0+ / MariaDB 10.11+ |
+| Shipbubble | an account with API keys ([app.shipbubble.com](https://app.shipbubble.com)) |
+| Shop | NGN currency, customer phone number in addresses, a message queue worker — see [Requirements on your shop](#requirements-on-your-shop) |
 
 ## Installation
 
-### Via Composer (recommended)
+### Shopware Store
+
+Install **Shipbubble Courier Delivery** from the Shopware Store under
+**Extensions > Store**, then activate it.
+
+### Release zip
+
+Download `KmhShipbubbleSW.zip` from the
+[GitHub releases](https://github.com/KommandHub-Org/KmhShipbubbleSW/releases)
+and upload it under **Extensions > My extensions > Upload extension**, then
+activate it.
+
+### Composer
+
+The package is not on Packagist; add the GitHub repository first:
 
 ```bash
-composer require kommandhub/shipbubble-sw
+composer config repositories.kmh-shipbubble vcs https://github.com/KommandHub-Org/KmhShipbubbleSW.git
+composer require kommandhub/shipbubble-sw:^1.0
 bin/console plugin:refresh
 bin/console plugin:install --activate KmhShipbubbleSW
 bin/console cache:clear
 ```
 
-### Manual upload
-
-Download the release zip and install it under **Extensions > My extensions >
-Upload extension**, then activate it.
+Then follow [Configuration](#configuration) and activate the shipping method.
 
 ## Configuration
 
 **Settings > Extensions > Shipbubble Courier Delivery for Shopware 6**
 
+Before you start you need a Shipbubble account
+([app.shipbubble.com](https://app.shipbubble.com)) with API keys
+(Settings > API keys & webhooks; test key `sb_sandbox_…`, live key `sb_prod_…`)
+and money in your Shipbubble wallet for live bookings.
+
 Every setting is sales-channel scoped: use the sales-channel selector at the top
 of the configuration page to override a value for one channel only.
 
 1. **Shipbubble account:** choose the mode (sandbox or live), enter the API key
-   for that mode and the webhook secret, **save**, then click **Test connection**.
-   It shows your Shipbubble wallet balance, or Shipbubble's error.
-2. **Sender:** enter the pickup address, **save**, then click
+   for that mode, **save**, then click **Test connection**. It shows your
+   Shipbubble wallet balance, or Shipbubble's error.
+2. **Webhook URL:** copy the URL shown under the keys into the Shipbubble
+   dashboard (Settings > API keys & webhooks) as **Test webhook url** and
+   **Live webhook url**. Status updates then reach the shop by themselves; they
+   are verified with your API key, so there is no extra secret. The page also
+   shows when the last update arrived.
+3. **Sender:** enter the pickup address, **save**, then click
    **Validate sender address**. Courier prices need a validated sender; the
    address code is stored separately for sandbox and live.
-3. **Couriers and packages:** pick the couriers to offer (empty = all) and your
+4. **Couriers and packages:** pick the couriers to offer (empty = all) and your
    usual package category. Both lists are loaded from your Shipbubble account.
-   Products without a weight use the default product weight.
-4. **Checkout price:** optional markup, and an optional fallback price used
+5. **Checkout price:** optional markup, and an optional fallback price used
    when Shipbubble cannot be reached.
-5. **Activate the shipping method** "Courier delivery (Shipbubble)" under
+6. **Activate the shipping method** "Courier delivery (Shipbubble)" under
    Settings > Shipping. The plugin creates it **inactive** and never changes it
-   again, so renaming it or changing its sales channels is safe.
+   again (except adding the Shipbubble tracking link when the field is empty),
+   so renaming it or changing its sales channels is safe.
+
+Nothing has to be set up in Flow Builder: the plugin installs its flows (see
+[Flows](#flows-installed-with-the-plugin)).
+
+### Requirements on your shop
+
+- **Currency NGN** in the sales channel: Shipbubble quotes in naira. In another
+  currency the method shows "not available in this currency".
+- **Customer phone number** in the shipping address: couriers need it. Turn on
+  the phone field (Settings > Login & sign-up); without a phone the method asks
+  the customer to complete the address.
+- **Product weights** in kg: products without a weight are priced with the
+  default product weight, and the configuration page warns how many active
+  products have none. Product dimensions are not used; the parcel uses the first
+  standard Shipbubble box that carries the weight, or your default box.
+- **A message queue worker** (`bin/console messenger:consume`, as Shopware
+  recommends for production): webhooks are processed in the background.
+
+### When Shipbubble cannot price a delivery
+
+Checkout never breaks: the courier method shows a reason and the customer picks
+another method.
+
+| Situation | Customer sees |
+| --- | --- |
+| No phone or incomplete address | "complete your delivery address, including a phone number" |
+| Address Shipbubble cannot find | "check it or choose another delivery method" |
+| No courier for the address | "No courier delivers to your address" |
+| Shop currency is not NGN | "not available in this currency" |
+| Shipbubble unreachable | your **fallback price** if set (you book the courier later from the order), else "temporarily unavailable" |
+| Key missing or sender not validated | "currently unavailable"; you get an admin notification (at most once an hour) |
 
 Do not make Shipbubble the only or the default shipping method of a sales
 channel: when Shipbubble cannot quote an address, customers need another option.
 
 You pay couriers from your own Shipbubble wallet; the plugin never collects or
 relays delivery fees.
+
+### Flows installed with the plugin
+
+All active from the start; edit, switch off or delete them in Flow Builder —
+updates never bring them back.
+
+| Flow | When | Does |
+| --- | --- | --- |
+| Shipbubble: create shipment when paid | payment is paid | books the customer's courier (charged to your wallet) |
+| Shipbubble: tracking email to customer | shipment booked | emails courier and tracking link |
+| Shipbubble: booking failed alert | booking fails | emails you Shipbubble's reason |
+| Shipbubble: delivered email to customer | Shipbubble reports delivered | confirms the delivery |
+| Shipbubble: parcel returned alert | Shipbubble reports returned | tells you a parcel is coming back |
+
+Further triggers (picked up, in transit, cancelled) are available for your own
+flows, e.g. SMS or WhatsApp messages.
+
+### Uninstalling
+
+Deactivating or uninstalling switches the shipping method off; it is never
+deleted, because orders refer to it. Uninstalling **without** "keep user data"
+also removes the shipment and webhook tables, the stored sender address codes,
+the plugin's flows and their mail templates. With "keep user data" everything
+stays.
 
 ## Architecture
 
@@ -83,16 +190,22 @@ top-level directory *is* a boundary; inside it, flat Symfony-idiomatic folders
 (`Service`, `Subscriber`, `Handler`, `Struct`, `Event`, `Enum`, `Controller`).
 No `Application/Domain/Infrastructure` nesting — one obvious home per class.
 
-Always present:
-
 | Path | Responsibility |
 | --- | --- |
-| `src/KmhShipbubbleSW.php` | plugin bootstrap and lifecycle hooks |
+| `src/KmhShipbubbleSW.php` | plugin bootstrap and lifecycle hooks (installers, uninstall clean-up) |
+| `src/Client/` | the only code that talks HTTP to Shipbubble: transport, resources, DTOs |
+| `src/Quote/` | checkout quotes: receiver address, parcel, rates, cache, failure notices |
+| `src/Shipping/` | cart processor, courier choice, shipping method installer, sender address |
+| `src/Shipment/` | booking, re-quote, refresh, cancel; delivery state updates; order snapshot |
+| `src/Webhook/` | webhook endpoint, signature check, storage, background handler |
+| `src/Flow/` | Flow Builder events, action and the flow installer |
+| `src/Administration/Controller/` | Admin API routes behind the settings page and the order card |
+| `src/Core/Content/` | DAL entities `kmh_shipbubble_shipment`, `kmh_shipbubble_webhook_event` |
 | `src/Setting/Service/Config.php` | typed, sales-channel-aware settings reader |
 | `src/Logging/ConfigurableLogger.php` | PSR-3 wrapper gated on the debug settings |
-| `src/Exception/` | plugin-scoped exception base |
-| `src/Resources/config/` | `services.yml`, `config.xml`, `packages/` |
-| `tests/Unit`, `tests/Integration` | mirror `src/` |
+| `src/ScheduledTask/` | daily clean-up of old webhook events |
+| `src/Resources/` | `config/` (services, routes, `config.xml`, packages), admin app, storefront Twig, snippets |
+| `tests/Unit` | mirrors `src/` |
 
 ## Features
 
@@ -104,9 +217,15 @@ Vue/JS sources live in `src/Resources/app/administration/src/`. Built output in
 commit the result: `make zip` ships the committed bundle as is (asset builds are
 off in `.shopware-extension.yml`).
 
-- `main.js` — entry point: registers locales, ACL, modules and services.
-- `acl/index.js` — the plugin's admin permissions.
-- `snippet/*.json` — one file per locale, mirroring the same key tree.
+- `main.js` — entry point: registers locales, ACL, components and services.
+- `acl/index.js` — order permissions `kmh_shipbubble_shipment.viewer` / `.editor`.
+- `component/` — settings-page parts (Test connection, sender validation,
+  courier and category selects, webhook URL, weight warning) and the order
+  card `kmh-shipbubble-order-shipment`.
+- `extension/` — mounts the order card on the order's General tab and
+  registers the Flow Builder action label, icon and modal.
+- `service/shipbubble-config.service.js` — client for the plugin's Admin API.
+- `snippet/*.json` — en-GB, de-DE, fr-FR, mirroring the same key tree.
 
 Any privilege enforced here **must** also be enforced server-side via `_acl` on
 the route.
@@ -212,14 +331,14 @@ events older than 90 days. It only runs when a worker is running
 
 ### Storefront
 
-- `src/Resources/app/storefront/src/` — JS plugins, registered in `main.js`.
 - `src/Resources/views/storefront/` — Twig overrides. **Namespace every block**
   you add (`{% block kmh_shipbubble_foo %}`) so it cannot collide with another plugin
   extending the same template.
 - `src/Resources/snippet/<locale>/` — storefront translations; every locale file
   must carry the same key tree.
 
-Built output under `src/Resources/app/storefront/dist/` is generated.
+The storefront needs no JavaScript: the courier picker posts with the core
+shipping form.
 
 ### Webhooks
 
@@ -303,8 +422,8 @@ All three must pass before a commit. PHPStan runs at the level pinned in
 
 ## CI/CD
 
-`.github/workflows/php.yml` runs on every push to `main`/`develop` and on every
-pull request: composer validate, PHP lint, PHPStan, php-cs-fixer (dry-run),
+`.github/workflows/php.yml` runs on every push to `main` and on every pull
+request: composer validate, PHP lint, PHPStan, php-cs-fixer (dry-run),
 PHPUnit with coverage, and a coverage threshold gate.
 
 CI runs **without a Shopware kernel**, so kernel-dependent tests are excluded
@@ -312,13 +431,14 @@ there and the plugin bootstrap is excluded from coverage in `phpunit.dist.xml`.
 
 ## Release process
 
-1. Land everything on `develop`; make sure the local gate passes.
+1. Make sure the local gate passes and CI is green on `main`.
 2. Bump `version` in `composer.json`.
-3. Add a `# <version>` section at the top of `CHANGELOG.md` (and the localised
-   variants). Check the rendering with `make changelog`.
+3. Add a `# <version>` section at the top of `CHANGELOG.md` and
+   `CHANGELOG_de-DE.md`. Check the rendering with `make changelog`.
 4. `make validate-plugin` — must be clean for a Store submission.
 5. `make zip` — the artefact lands in `build/`.
-6. Merge `develop` into `main` and tag the release.
+6. Tag `v<version>` on `main`, create the GitHub release with the zip, and
+   upload the same zip to the Shopware Store.
 
 ## Logging and debugging
 
@@ -343,9 +463,14 @@ public issue for one, and never paste real credentials into an issue.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Pull requests target `develop`, commits
+See [CONTRIBUTING.md](CONTRIBUTING.md). Pull requests target `main`, commits
 are signed off (`git commit -s`), and the local gate must pass.
 
 ## License
 
-Apache-2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+Apache-2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE). The KommandHub name
+and logo are covered by [TRADEMARKS.md](TRADEMARKS.md).
+
+Shipbubble is a trademark of its owner. This plugin is an independent
+integration by Kommandhub Limited and is not affiliated with or endorsed by
+Shipbubble.

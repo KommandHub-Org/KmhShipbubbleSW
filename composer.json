@@ -1,8 +1,8 @@
 {
     "name": "kommandhub/shipbubble-sw",
-    "description": "Live courier rates from Shipbubble at checkout, shipment booking and tracking, on the merchant's own Shipbubble account.",
+    "description": "Live Shipbubble courier rates at checkout, shipment booking from the order, tracking emails and automatic delivery status updates, all on the merchant's own Shipbubble account.",
     "type": "shopware-platform-plugin",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "license": "Apache-2.0",
     "keywords": [
         "shopware",
@@ -63,9 +63,9 @@
             "fr-FR": "Shipbubble Courier Delivery for Shopware 6"
         },
         "description": {
-            "de-DE": "Live-Kurierpreise von Shipbubble im Checkout, Sendungsbuchung und Sendungsverfolgung mit dem eigenen Shipbubble-Konto des Händlers.",
-            "en-GB": "Live courier rates from Shipbubble at checkout, shipment booking and tracking, on the merchant's own Shipbubble account.",
-            "fr-FR": "Live courier rates from Shipbubble at checkout, shipment booking and tracking, on the merchant's own Shipbubble account."
+            "de-DE": "Live-Kurierpreise von Shipbubble im Checkout, Sendungsbuchung aus der Bestellung, Tracking-E-Mails und automatische Lieferstatus-Updates mit dem eigenen Shipbubble-Konto.",
+            "en-GB": "Live Shipbubble courier rates at checkout, shipment booking from the order, tracking emails and automatic delivery status updates, all on the merchant's own Shipbubble account.",
+            "fr-FR": "Tarifs Shipbubble en direct au paiement, réservation des envois depuis la commande, e-mails de suivi et mises à jour automatiques du statut, avec le compte Shipbubble du marchand."
         },
         "manufacturerLink": {
             "de-DE": "https://www.kommandhub.com",

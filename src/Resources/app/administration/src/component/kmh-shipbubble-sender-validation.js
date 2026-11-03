@@ -36,7 +36,7 @@ Shopware.Component.register('kmh-shipbubble-sender-validation', {
                 } else {
                     this.createNotificationError({ message: result.message });
                 }
-            } catch (e) {
+            } catch {
                 this.createNotificationError({ message: this.$tc('kmh-shipbubble.config.requestFailed') });
             } finally {
                 this.isLoading = false;

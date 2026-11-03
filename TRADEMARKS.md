@@ -17,7 +17,7 @@ The following are trademarks of **Kommandhub Limited** ("the Marks"):
 - The names **"KommandHub"** and **"Kommandhub"**.
 - The **KommandHub logo** (the rounded-square network mark shipped in this
   repository, e.g. `src/Resources/config/plugin.png`).
-- Product names that combine the above, such as **"Shipbubble Payment by
+- Product names that combine the above, such as **"Shipbubble Courier Delivery by
   Kommandhub"**.
 
 ## What you may do (no permission needed)
@@ -51,7 +51,7 @@ and this policy explicitly withholds.
 "Shipbubble", the Shipbubble logo, and related marks are trademarks of their
 respective owner. This project is an **independent, third-party** integration
 and is **not** affiliated with, endorsed by, or officially supported by
-Shipbubble. Those marks are used here only to identify the payment gateway the
+Shipbubble. Those marks are used here only to identify the courier service the
 plugin connects to. Your own use of the Shipbubble name and brand is subject to
 Shipbubble's own brand and trademark guidelines, not this policy.
 

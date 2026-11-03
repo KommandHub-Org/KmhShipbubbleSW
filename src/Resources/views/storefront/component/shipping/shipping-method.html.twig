@@ -28,7 +28,7 @@
                             <label class="form-check-label d-flex align-items-start gap-2 w-100" for="{{ courierInputId }}">
                                 {% block kmh_shipbubble_courier_picker_logo %}
                                     {% if courier.courierImage %}
-                                        <img src="{{ courier.courierImage }}" alt="" width="32" height="32" loading="lazy" class="flex-shrink-0">
+                                        <img src="{{ courier.courierImage }}" alt="{{ courier.courierName }}" width="32" height="32" loading="lazy" class="flex-shrink-0">
                                     {% endif %}
                                 {% endblock %}
                                 <span class="flex-grow-1 text-break">

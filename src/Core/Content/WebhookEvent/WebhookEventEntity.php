@@ -33,14 +33,29 @@ class WebhookEventEntity extends Entity
         return $this->idempotencyKey;
     }
 
+    public function setIdempotencyKey(string $idempotencyKey): void
+    {
+        $this->idempotencyKey = $idempotencyKey;
+    }
+
     public function getEvent(): string
     {
         return $this->event;
     }
 
+    public function setEvent(string $event): void
+    {
+        $this->event = $event;
+    }
+
     public function getShipbubbleOrderId(): ?string
     {
         return $this->shipbubbleOrderId;
+    }
+
+    public function setShipbubbleOrderId(?string $shipbubbleOrderId): void
+    {
+        $this->shipbubbleOrderId = $shipbubbleOrderId;
     }
 
     /**
@@ -51,9 +66,22 @@ class WebhookEventEntity extends Entity
         return $this->payload;
     }
 
+    /**
+     * @param array<mixed> $payload
+     */
+    public function setPayload(array $payload): void
+    {
+        $this->payload = $payload;
+    }
+
     public function getReceivedAt(): \DateTimeInterface
     {
         return $this->receivedAt;
+    }
+
+    public function setReceivedAt(\DateTimeInterface $receivedAt): void
+    {
+        $this->receivedAt = $receivedAt;
     }
 
     public function getProcessedAt(): ?\DateTimeInterface
@@ -61,8 +89,18 @@ class WebhookEventEntity extends Entity
         return $this->processedAt;
     }
 
+    public function setProcessedAt(?\DateTimeInterface $processedAt): void
+    {
+        $this->processedAt = $processedAt;
+    }
+
     public function getError(): ?string
     {
         return $this->error;
+    }
+
+    public function setError(?string $error): void
+    {
+        $this->error = $error;
     }
 }

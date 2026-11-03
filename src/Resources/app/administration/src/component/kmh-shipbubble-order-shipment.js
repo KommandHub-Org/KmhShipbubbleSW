@@ -189,7 +189,7 @@ Shopware.Component.register('kmh-shipbubble-order-shipment', {
                 }
 
                 return result;
-            } catch (e) {
+            } catch {
                 this.createNotificationError({ message: this.$tc('kmh-shipbubble.config.requestFailed') });
 
                 return null;

@@ -74,7 +74,7 @@ class ShipbubbleWebhookHandler
             $payload['order_id'],
             Shipment::fromArray($payload),
             $event === 'shipment.cancelled' ? ShipmentStatus::Cancelled : self::newStatus($payload),
-            Context::createDefaultContext(),
+            Context::createCLIContext(),
         );
 
         return $applied ? null : 'No shipment with this Shipbubble order id.';

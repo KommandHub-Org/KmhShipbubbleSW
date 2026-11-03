@@ -90,7 +90,7 @@ Shopware.Component.register('kmh-shipbubble-api-select', {
                 } else {
                     this.error = result.message;
                 }
-            } catch (e) {
+            } catch {
                 this.error = this.$tc('kmh-shipbubble.config.requestFailed');
             } finally {
                 this.isLoading = false;

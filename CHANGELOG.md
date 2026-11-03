@@ -1,25 +1,15 @@
-# 0.1.0
+# 1.0.0
 
-Initial release.
+First release.
 
-- Shipping method "Courier delivery (Shipbubble)", created inactive on install.
-- Configuration per sales channel: sandbox/live mode and keys, webhook secret, sender address, couriers, package category, default weight and box, markup, fallback price.
-- "Test connection" shows your Shipbubble wallet balance; "Validate sender address" registers your pickup address with Shipbubble.
-- Courier and package-category lists load from your Shipbubble account.
-- Live courier prices at checkout: customers pick a courier (logo, delivery estimate, price including your markup) under "Courier delivery (Shipbubble)". The price always comes from the plugin's own Shipbubble quote.
-- Quotes are cached per cart and address, so reloading checkout does not call Shipbubble again; changing a quantity or the address re-quotes.
-- When an address cannot be quoted, checkout explains why and asks the customer to choose another delivery method. If Shipbubble is unreachable, your fallback price is charged instead (when set), and you get an admin notification at most once an hour.
-- The chosen courier, Shipbubble quote and charged price are saved with each order.
-- The configuration page warns when active products have no weight.
-- Shipbubble card on the order: chosen courier, charged and Shipbubble price, status, tracking link, courier tracking number and waybill, with Create shipment, Refresh status and Cancel shipment.
-- Creating a shipment books the customer's courier with the checkout quote. When that quote can no longer be used, the plugin fetches a new one and asks you to confirm the new courier price first; the customer's shipping price never changes.
-- The Shipbubble order id is written to the order's tracking codes, and the shipping method links it to Shipbubble's tracking page, so Shopware's own tracking link and mails work.
-- Ready-made flows, installed with the plugin and active: "create shipment when paid" books the courier automatically, "tracking email to customer" sends the courier and tracking link, "booking failed alert" emails the shop admin Shipbubble's reason. Each can be edited or switched off in Flow Builder.
-- Flow Builder action "Create Shipbubble shipment" and triggers "Shipbubble shipment created" and "Shipbubble shipment failed".
-- New order permissions "Shipbubble shipments" (view, edit).
-- Shipbubble webhooks: status changes (confirmed, picked up, in transit, delivered, returned, cancelled) update the shipment and the order's delivery status automatically. Webhooks are verified with your API key; repeated deliveries are processed once.
-- The configuration page shows the webhook URL to paste into the Shipbubble dashboard and when the last update arrived. The separate "Webhook secret" setting is gone: Shipbubble signs with your API key.
-- Flow Builder triggers for picked up, in transit, delivered, returned and cancelled, and two more ready-made flows: "delivered email to customer" and "parcel returned alert" to the shop admin.
+- Live Shipbubble courier prices at checkout: customers pick a courier (logo, delivery estimate, price incl. your markup) under "Courier delivery (Shipbubble)". The price always comes from the plugin's own Shipbubble quote.
+- Quotes are cached per cart and address; changing a quantity or the address re-quotes. If an address cannot be quoted, checkout explains why and the customer picks another method; if Shipbubble is unreachable, an optional fallback price applies and you get an admin notification.
+- Shipbubble card on the order: courier, prices, status, tracking link, courier tracking number and waybill, with Create shipment, Refresh status and Cancel shipment. When the checkout quote can no longer be used, you confirm a new courier price first; the customer's shipping price never changes.
+- Tracking: the Shipbubble order id is written to the order's tracking codes and linked to Shipbubble's tracking page in the customer account and mails.
+- Shipbubble webhooks keep the shipment and the order's delivery status up to date (picked up, in transit, delivered, returned, cancelled). Webhooks are verified with your API key; the settings page shows the URL to paste into Shipbubble.
+- Ready-made, active flows: book the courier when the order is paid, tracking email to the customer, delivered email, booking-failed and parcel-returned alerts to you. Flow Builder action "Create Shipbubble shipment" and triggers for every shipment status.
+- Settings per sales channel: sandbox or live, Test connection with wallet balance, sender address validation, couriers, package category, default weight and box, markup, fallback price. Warns when active products have no weight.
+- Order permissions "Shipbubble shipments" (view, edit).
 
 <!--
 Format notes (this file is rendered by the Shopware Store):
