@@ -103,6 +103,7 @@ class QuoteService
         } catch (ShipbubbleApiException $e) {
             $result = QuoteError::fromRateFailure($e->getReason());
             $httpStatus = $e->getHttpStatus();
+            $message = $e->getMessage();
 
             if (\in_array($e->getReason(), [ApiErrorReason::Timeout, ApiErrorReason::Network], true)) {
                 $this->markUnreachable($salesChannelId);
@@ -113,6 +114,7 @@ class QuoteService
             $this->logger->log($result->notifiesAdmin() ? 'error' : 'notice', 'Shipbubble delivery could not be quoted.', [
                 'reason' => $result->value,
                 'httpStatus' => $httpStatus ?? null,
+                'message' => $message ?? null,
                 'salesChannelId' => $salesChannelId,
             ]);
             $this->failureNotifier->notify($result, $salesChannelId, $context);

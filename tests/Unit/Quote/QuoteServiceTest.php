@@ -141,6 +141,17 @@ class QuoteServiceTest extends TestCase
         static::assertSame(0, $this->rateCalls);
     }
 
+    public function testRefusalLogsShipbubblesMessage(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(static::once())->method('log')->with('error', static::anything(), static::callback(
+            static fn (array $context): bool => $context['httpStatus'] === 400 && $context['message'] === 'No courier available',
+        ));
+
+        $this->service(rates: static fn (): MockResponse => ClientFactory::json(['status' => 'failed', 'message' => 'No courier available'], 400), logger: $logger)
+            ->quote(CheckoutFixture::cart(), CheckoutFixture::context());
+    }
+
     public function testIncompleteAddressIsLoggedAsNotice(): void
     {
         $logger = $this->createMock(LoggerInterface::class);
