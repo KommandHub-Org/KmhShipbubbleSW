@@ -36,7 +36,7 @@
       "requoteCharged": "Le prix de livraison payé par le client ne change pas. Réserver l'envoi au nouveau prix ?",
       "requoteConfirm": "Réserver l'envoi",
       "cancelTitle": "Annuler l'envoi ?",
-      "cancelText": "Shipbubble peut facturer des frais d'annulation, et un envoi ne peut plus être annulé une fois traité par le coursier.",
+      "cancelText": "Avant l'enlèvement, Shipbubble rembourse l'étiquette sur votre portefeuille, moins des frais d'annulation de 150 ₦. Une fois le colis enlevé par le coursier, l'envoi ne peut plus être annulé.",
       "cancelConfirm": "Annuler l'envoi",
       "done": {
         "create": "Envoi créé chez Shipbubble.",

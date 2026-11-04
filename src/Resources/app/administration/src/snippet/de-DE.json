@@ -36,7 +36,7 @@
       "requoteCharged": "Der vom Kunden bezahlte Versandpreis ändert sich nicht. Sendung zum neuen Preis buchen?",
       "requoteConfirm": "Sendung buchen",
       "cancelTitle": "Sendung stornieren?",
-      "cancelText": "Shipbubble kann eine Stornogebühr berechnen, und eine Sendung lässt sich nicht mehr stornieren, sobald der Kurier sie bearbeitet hat.",
+      "cancelText": "Vor der Abholung erstattet Shipbubble das Label abzüglich einer Stornogebühr von ₦150 auf Ihr Wallet. Hat der Kurier das Paket abgeholt, lässt sich die Sendung nicht mehr stornieren.",
       "cancelConfirm": "Sendung stornieren",
       "done": {
         "create": "Sendung bei Shipbubble erstellt.",

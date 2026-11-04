@@ -97,7 +97,11 @@ Then follow [Configuration](#configuration) and activate the shipping method.
 Before you start you need a Shipbubble account
 ([app.shipbubble.com](https://app.shipbubble.com)) with API keys
 (Settings > API keys & webhooks; test key `sb_sandbox_…`, live key `sb_prod_…`)
-and money in your Shipbubble wallet for live bookings.
+and money in your Shipbubble wallet for live bookings. Shipbubble lets you fund
+the wallet only after your account is verified, so finish verification first.
+A booking with too little money fails with Shipbubble's "Insufficient wallet
+balance" message; to avoid that, turn on automatic wallet funding or a
+low-balance email in your Shipbubble wallet settings.
 
 Every setting is sales-channel scoped: use the sales-channel selector at the top
 of the configuration page to override a value for one channel only.
@@ -278,7 +282,7 @@ and the routes `POST /api/_action/kmh-shipbubble/shipment/{id}/create|refresh|ca
 
 - **Create** books the courier with the checkout `request_token`. A token books
   one label only and may expire, so when the shipment needs a quote, the token
-  is older than 120 h, or Shipbubble rejects it, the delivery is re-quoted
+  is older than six days (Shipbubble keeps it for seven), or Shipbubble rejects it, the delivery is re-quoted
   (never from the cache), stored as `needs_quote`, and the merchant confirms
   the new carrier price within 15 minutes before it is booked. The row is
   locked during booking, so a delivery is never booked twice.
@@ -287,7 +291,9 @@ and the routes `POST /api/_action/kmh-shipbubble/shipment/{id}/create|refresh|ca
   cancels it (core states only, a transition the state does not allow is
   skipped).
 - **Cancel** asks Shipbubble; a refusal is shown with Shipbubble's reason and
-  the status stays.
+  the status stays. Before pickup Shipbubble refunds the label to your wallet
+  minus a ₦150 cancellation fee; once the courier has picked the parcel up it
+  can no longer be cancelled.
 - After booking, the Shipbubble order id is added to the delivery's tracking
   codes; the shipping method's tracking URL points to Shipbubble tracking.
 

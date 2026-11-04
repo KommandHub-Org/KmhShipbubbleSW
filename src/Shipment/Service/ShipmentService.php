@@ -48,10 +48,11 @@ use Shopware\Core\Framework\Uuid\Uuid;
 class ShipmentService
 {
     /**
-     * Tokens older than this are re-quoted before booking. ⚠ The real limit is
-     * not documented; Shipbubble support has been asked (spec §12).
+     * Tokens older than this are re-quoted before booking. Shipbubble keeps a
+     * `request_token` for seven days (confirmed by Shipbubble support); one
+     * day of margin.
      */
-    public const TOKEN_MAX_AGE_HOURS = 120;
+    public const TOKEN_MAX_AGE_HOURS = 144;
 
     /**
      * How long a re-quote waits for the merchant's confirmation, in seconds.

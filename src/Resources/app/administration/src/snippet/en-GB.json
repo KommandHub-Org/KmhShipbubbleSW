@@ -36,7 +36,7 @@
       "requoteCharged": "The shipping price the customer paid does not change. Book the shipment at the new price?",
       "requoteConfirm": "Book shipment",
       "cancelTitle": "Cancel shipment?",
-      "cancelText": "Shipbubble may charge a cancellation fee, and a shipment can no longer be cancelled once the courier has processed it.",
+      "cancelText": "Before pickup, Shipbubble refunds the label to your wallet minus a ₦150 cancellation fee. Once the courier has picked the parcel up, it can no longer be cancelled.",
       "cancelConfirm": "Cancel shipment",
       "done": {
         "create": "Shipment created at Shipbubble.",
