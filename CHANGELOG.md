@@ -4,6 +4,7 @@ First release.
 
 - Live Shipbubble courier prices at checkout: customers pick a courier (logo, delivery estimate, price incl. your markup) under "Courier delivery (Shipbubble)". The price always comes from the plugin's own Shipbubble quote.
 - Quotes are cached per cart and address; changing a quantity or the address re-quotes. If an address cannot be quoted, checkout explains why and the customer picks another method; if Shipbubble is unreachable, an optional fallback price applies and you get an admin notification.
+- If Shipbubble cannot be reached, checkout stops asking it for a minute, so customers wait for one timeout per minute instead of one on every page.
 - Shipbubble card on the order: courier, prices, status, tracking link, courier tracking number and waybill, with Create shipment, Refresh status and Cancel shipment. When the checkout quote can no longer be used, you confirm a new courier price first; the customer's shipping price never changes.
 - Tracking: the Shipbubble order id is written to the order's tracking codes and linked to Shipbubble's tracking page in the customer account and mails.
 - Shipbubble webhooks keep the shipment and the order's delivery status up to date (picked up, in transit, delivered, returned, cancelled). Webhooks are verified with your API key; the settings page shows the URL to paste into Shipbubble.

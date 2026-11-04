@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Kommandhub\ShipbubbleSW\Quote;
 
+use Kommandhub\ShipbubbleSW\Client\ApiErrorReason;
 use Kommandhub\ShipbubbleSW\Client\Dto\CourierRate;
 use Kommandhub\ShipbubbleSW\Client\Dto\RateQuote;
 use Kommandhub\ShipbubbleSW\Client\ShipbubbleClient;
@@ -23,7 +24,9 @@ use Symfony\Contracts\Cache\ItemInterface;
  *
  * Quotes are cached per receiver, parcel and currency, so reloading checkout
  * never calls Shipbubble while changing a quantity or the address re-quotes.
- * Failures are never cached.
+ * Failures are never cached, with one exception: when Shipbubble times out or
+ * cannot be reached, checkout does not call it again for a minute, so an
+ * outage costs one timeout per minute rather than one per page.
  */
 class QuoteService
 {
@@ -33,6 +36,8 @@ class QuoteService
     private const DELIVERY_INSTRUCTIONS = 'Online shop order';
 
     private const TIMEZONE = 'Africa/Lagos';
+
+    private const UNREACHABLE_TTL = 60;
 
     public function __construct(
         private readonly Config $config,
@@ -50,6 +55,11 @@ class QuoteService
         $salesChannelId = $context->getSalesChannelId();
 
         return $this->report(function () use ($cart, $context, $salesChannelId): QuoteStruct|QuoteError {
+            // ponytail: also skips quotes already cached; check per cache miss if that costs orders.
+            if ($this->wasUnreachable($salesChannelId)) {
+                return QuoteError::Unavailable;
+            }
+
             $receiverCode = $this->receiverAddressService->addressCode($context);
 
             if ($receiverCode instanceof QuoteError) {
@@ -93,6 +103,10 @@ class QuoteService
         } catch (ShipbubbleApiException $e) {
             $result = QuoteError::fromRateFailure($e->getReason());
             $httpStatus = $e->getHttpStatus();
+
+            if (\in_array($e->getReason(), [ApiErrorReason::Timeout, ApiErrorReason::Network], true)) {
+                $this->markUnreachable($salesChannelId);
+            }
         }
 
         if ($result instanceof QuoteError) {
@@ -105,6 +119,26 @@ class QuoteService
         }
 
         return $result;
+    }
+
+    private function wasUnreachable(string $salesChannelId): bool
+    {
+        return $this->cache->get('kmh_sb_unreachable_' . $salesChannelId, static function (ItemInterface $item, bool &$save): bool {
+            $save = false;
+
+            return false;
+        });
+    }
+
+    private function markUnreachable(string $salesChannelId): void
+    {
+        $key = 'kmh_sb_unreachable_' . $salesChannelId;
+        $this->cache->delete($key);
+        $this->cache->get($key, static function (ItemInterface $item): bool {
+            $item->expiresAfter(self::UNREACHABLE_TTL);
+
+            return true;
+        });
     }
 
     /**

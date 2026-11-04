@@ -179,6 +179,15 @@ class QuoteServiceTest extends TestCase
         static::assertSame(2, $this->rateCalls);
     }
 
+    public function testUnreachableShipbubbleIsNotCalledAgainForAMinute(): void
+    {
+        $service = $this->service(rates: static fn (): MockResponse => new MockResponse('', ['error' => 'Could not resolve host']));
+
+        static::assertSame(QuoteError::Unavailable, $service->quote(CheckoutFixture::cart(), CheckoutFixture::context()));
+        static::assertSame(QuoteError::Unavailable, $service->quote(CheckoutFixture::cart(), CheckoutFixture::context()));
+        static::assertSame(1, $this->rateCalls);
+    }
+
     /**
      * @param array<string, mixed> $config
      * @param list<array<string, mixed>> $couriers
