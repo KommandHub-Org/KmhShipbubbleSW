@@ -28,7 +28,7 @@ use Symfony\Component\DependencyInjection\Loader\GlobFileLoader;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 /**
- * Main Shopware plugin class for Shipbubble Courier Delivery.
+ * Main Shopware plugin class for Shipbubble.
  *
  * Responsibilities:
  * - Extends the DI container with this plugin's package configuration.

@@ -1,4 +1,4 @@
-# Shipbubble Courier Delivery
+# Shipbubble
 
 Live Shipbubble courier rates at checkout, shipment booking from the order,
 tracking emails and automatic delivery status updates — all on the merchant's
@@ -66,7 +66,7 @@ relays delivery fees.
 
 ### Shopware Store
 
-Install **Shipbubble Courier Delivery** from the Shopware Store under
+Install **Shipbubble** from the Shopware Store under
 **Extensions > Store**, then activate it.
 
 ### Release zip
@@ -92,7 +92,7 @@ Then follow [Configuration](#configuration) and activate the shipping method.
 
 ## Configuration
 
-**Settings > Extensions > Shipbubble Courier Delivery**
+**Settings > Extensions > Shipbubble**
 
 Before you start you need a Shipbubble account
 ([app.shipbubble.com](https://app.shipbubble.com)) with API keys

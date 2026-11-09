@@ -1,6 +1,6 @@
 {
   "kmh-shipbubble": {
-    "title": "Shipbubble Courier Delivery",
+    "title": "Shipbubble",
     "config": {
       "testConnection": "Test connection",
       "saveFirst": "Save the settings first; the test uses the saved API key.",
@@ -67,7 +67,7 @@
   "sw-privileges": {
     "additional_permissions": {
       "shipbubble": {
-        "label": "Shipbubble Courier Delivery",
+        "label": "Shipbubble",
         "manage": "Manage"
       }
     }
