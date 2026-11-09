@@ -82,11 +82,10 @@ activate it.
 
 ### Composer
 
-The package is not on Packagist; add the GitHub repository first:
+The package is on [Packagist](https://packagist.org/packages/kommandhub/shipbubble-sw):
 
 ```bash
-composer config repositories.kmh-shipbubble vcs https://github.com/KommandHub-Org/KmhShipbubbleSW.git
-composer require kommandhub/shipbubble-sw:^1.0
+composer require kommandhub/shipbubble-sw
 bin/console plugin:refresh
 bin/console plugin:install --activate KmhShipbubbleSW
 bin/console cache:clear
