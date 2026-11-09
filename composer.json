@@ -2,7 +2,7 @@
     "name": "kommandhub/shipbubble-sw",
     "description": "Live Shipbubble courier rates at checkout, shipment booking from the order, tracking emails and automatic delivery status updates, all on the merchant's own Shipbubble account.",
     "type": "shopware-platform-plugin",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "license": "Apache-2.0",
     "keywords": [
         "shopware",

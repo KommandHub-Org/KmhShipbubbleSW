@@ -1,3 +1,11 @@
+# 1.0.4
+
+- Lehnt Shipbubble eine Adressprüfung wegen Ihres Guthabens ab, sendet der Checkout eine Minute lang keine neuen Adressen an Shipbubble statt bei jeder Warenkorb-Aktualisierung. Bereits gespeicherte Adressen erhalten weiterhin Preise.
+- Beim erneuten Aktivieren des Plugins wird die Versandart nicht wieder eingeschaltet; die README sagt jetzt, wo Sie sie einschalten.
+- Das Composer-Paket enthält keine Tests und Entwicklungsdateien mehr.
+
+---
+
 # 1.0.3
 
 - Das Plugin-Symbol ist jetzt das Shipbubble-Logo, mit Erlaubnis von Shipbubble verwendet.

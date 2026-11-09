@@ -1,3 +1,11 @@
+# 1.0.4
+
+- When Shipbubble refuses to validate an address because of your balance, checkout stops sending new addresses to Shipbubble for a minute instead of on every cart update. Addresses already stored keep getting prices.
+- Reactivating the plugin does not switch the shipping method back on; the README now says where to turn it on.
+- The Composer package no longer contains tests and development files.
+
+---
+
 # 1.0.3
 
 - The plugin icon is now the Shipbubble logo, used with Shipbubble's permission.
