@@ -9,13 +9,12 @@ file per Section 4(d) of that License.
 Trademark notice
 --------------------------------------------------------------------------------
 
-This software is an independent, third-party integration. It is not affiliated
-with, endorsed by, sponsored by, certified by, or officially supported by
-Shipbubble.
-
-"Shipbubble", the Shipbubble logo, and related marks are trademarks
-of their respective owner and are referenced here solely to identify the service
-this software connects to (nominative use).
+This software is built and maintained by Kommandhub Limited as a Shipbubble
+developer partner. "Shipbubble", the Shipbubble logo, and related marks are
+trademarks of Shipbubble, used by Kommandhub Limited with Shipbubble's
+permission. That permission is Kommandhub's and does not pass to forks or
+redistributions, which may refer to Shipbubble only to identify the service the
+software connects to (nominative use).
 "Shopware" is a registered trademark of shopware AG, referenced only to identify
 the platform this software extends. No trademark rights are granted by the
 Apache License, Version 2.0 (see Section 6 of the LICENSE).

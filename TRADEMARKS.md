@@ -48,12 +48,14 @@ and this policy explicitly withholds.
 
 ## Third-party trademarks
 
-"Shipbubble", the Shipbubble logo, and related marks are trademarks of their
-respective owner. This project is an **independent, third-party** integration
-and is **not** affiliated with, endorsed by, or officially supported by
-Shipbubble. Those marks are used here only to identify the courier service the
-plugin connects to. Your own use of the Shipbubble name and brand is subject to
-Shipbubble's own brand and trademark guidelines, not this policy.
+"Shipbubble", the Shipbubble logo, and related marks are trademarks of
+Shipbubble. Kommandhub Limited builds this plugin as a **Shipbubble developer
+partner** and uses those marks with Shipbubble's permission. That permission is
+Kommandhub's alone: a fork or redistribution must not present itself as a
+Shipbubble partner integration, and may use the Shipbubble name only to identify
+the courier service it connects to. Your own use of the Shipbubble name and
+brand is subject to Shipbubble's own brand and trademark guidelines, not this
+policy.
 
 "Shopware" is a registered trademark of shopware AG and is used here only to
 identify the platform this plugin extends.

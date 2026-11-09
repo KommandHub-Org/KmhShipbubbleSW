@@ -482,6 +482,7 @@ are signed off (`git commit -s`), and the local gate must pass.
 Apache-2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE). The KommandHub name
 and logo are covered by [TRADEMARKS.md](TRADEMARKS.md).
 
-Shipbubble is a trademark of its owner. This plugin is an independent
-integration by Kommandhub Limited and is not affiliated with or endorsed by
-Shipbubble.
+Shipbubble and the Shipbubble logo are trademarks of Shipbubble, used with
+permission. Kommandhub Limited builds and maintains this plugin as a Shipbubble
+developer partner; contact Shipbubble about your account, wallet and deliveries,
+and Kommandhub about the plugin.
