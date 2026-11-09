@@ -9,7 +9,7 @@ tracking emails and automatic delivery status updates — all on the merchant's
 own Shipbubble account. Free and open source.
 
 [![CI](https://github.com/KommandHub-Org/KmhShipbubbleSW/actions/workflows/php.yml/badge.svg?branch=main)](https://github.com/KommandHub-Org/KmhShipbubbleSW/actions/workflows/php.yml)
-[![Release](https://img.shields.io/github/v/release/KommandHub-Org/KmhShipbubbleSW?sort=semver)](https://github.com/KommandHub-Org/KmhShipbubbleSW/releases)
+[![Packagist](https://img.shields.io/packagist/v/kommandhub/shipbubble-sw)](https://packagist.org/packages/kommandhub/shipbubble-sw)
 [![Shopware](https://img.shields.io/badge/Shopware-6.7-189eff)](https://www.shopware.com/)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-777bb4)](https://www.php.net/)
 [![PHPStan](https://img.shields.io/badge/PHPStan-level%209-brightgreen)](phpstan.dist.neon)
