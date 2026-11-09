@@ -1,4 +1,8 @@
-# Shipbubble
+<p align="center">
+  <img src="https://raw.githubusercontent.com/KommandHub-Org/KmhShipbubbleSW/main/src/Resources/config/plugin.png" alt="Shipbubble logo" width="120" height="120">
+</p>
+
+<h1 align="center">Shipbubble</h1>
 
 Live Shipbubble courier rates at checkout, shipment booking from the order,
 tracking emails and automatic delivery status updates — all on the merchant's
