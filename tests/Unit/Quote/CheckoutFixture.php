@@ -111,7 +111,7 @@ final class CheckoutFixture
 
         $order = new OrderEntity();
         $order->setId('order-1');
-        $order->setSalesChannelId('sc-1');
+        $order->setSalesChannelId('0199a1b2c3d4e5f60718293a4b5c6d7e');
         $order->setLineItems(new OrderLineItemCollection([$lineItem]));
         $order->setOrderCustomer($customer);
         $order->setCurrency($currency);

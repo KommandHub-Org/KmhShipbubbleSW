@@ -30,9 +30,13 @@ use Kommandhub\ShipbubbleSW\Tests\Unit\Client\ClientFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
+use Doctrine\DBAL\Connection;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Shopware\Core\Checkout\Cart\Delivery\Struct\ShippingLocation;
 use Shopware\Core\Framework\Context;
+use Shopware\Core\System\Country\CountryEntity;
+use Shopware\Core\Test\Generator;
 use Shopware\Core\Framework\Notification\NotificationService;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\HttpClient\MockHttpClient;
@@ -69,6 +73,8 @@ class QuoteServiceTest extends TestCase
     ];
 
     private int $rateCalls = 0;
+
+    private int $validations = 0;
 
     /**
      * @var array<mixed>|null
@@ -160,6 +166,62 @@ class QuoteServiceTest extends TestCase
         static::assertSame(QuoteError::IncompleteAddress, $this->service(logger: $logger)->quote(CheckoutFixture::cart(), CheckoutFixture::context(phone: '')));
     }
 
+    public function testMissingShippingAddressIsIncomplete(): void
+    {
+        static::assertSame(QuoteError::IncompleteAddress, $this->service()->quote(
+            CheckoutFixture::cart(),
+            Generator::generateSalesChannelContext(shippingLocation: new ShippingLocation(new CountryEntity())),
+        ));
+        static::assertSame(0, $this->validations);
+    }
+
+    public function testRefusedReceiverAddressIsValidatedOnceMore(): void
+    {
+        $responses = [
+            ClientFactory::json(['status' => 'failed', 'message' => 'Invalid receiver address code'], 400),
+            ClientFactory::ok(['request_token' => 'tok', 'couriers' => self::COURIERS]),
+        ];
+        $quote = $this->service(rates: static function () use (&$responses): MockResponse {
+            return array_shift($responses);
+        })->quote(CheckoutFixture::cart(), CheckoutFixture::context());
+
+        static::assertInstanceOf(QuoteStruct::class, $quote);
+        static::assertSame(2, $this->validations);
+        static::assertSame(457, $this->rateBody['reciever_address_code']);
+    }
+
+    public function testRefusalTwiceGivesUpAfterOneRevalidation(): void
+    {
+        $quote = $this->service(rates: static fn (): MockResponse => ClientFactory::json(['status' => 'failed', 'message' => 'Address not found'], 400))
+            ->quote(CheckoutFixture::cart(), CheckoutFixture::context());
+
+        static::assertInstanceOf(QuoteError::class, $quote);
+        static::assertSame(2, $this->validations);
+        static::assertSame(2, $this->rateCalls);
+    }
+
+    public function testAddressRejectedOnRevalidationIsInvalid(): void
+    {
+        $quote = $this->service(
+            rates: static fn (): MockResponse => ClientFactory::json(['status' => 'failed', 'message' => 'Address not found'], 400),
+            validate: fn (): MockResponse => $this->validations === 1
+                ? ClientFactory::ok(['address_code' => 456])
+                : ClientFactory::json(['status' => 'failed', 'message' => 'Address could not be validated'], 400),
+        )->quote(CheckoutFixture::cart(), CheckoutFixture::context());
+
+        static::assertSame(QuoteError::InvalidAddress, $quote);
+        static::assertSame(1, $this->rateCalls);
+    }
+
+    public function testSenderAddressRefusalDoesNotRevalidateTheCustomer(): void
+    {
+        $this->service(rates: static fn (): MockResponse => ClientFactory::json(['status' => 'failed', 'message' => 'Invalid sender address code'], 400))
+            ->quote(CheckoutFixture::cart(), CheckoutFixture::context());
+
+        static::assertSame(1, $this->validations);
+        static::assertSame(1, $this->rateCalls);
+    }
+
     public function testRequoteOfAnOrderNeverUsesTheCache(): void
     {
         $service = $this->service();
@@ -210,6 +272,7 @@ class QuoteServiceTest extends TestCase
         ?\Closure $rates = null,
         ?NotificationService $notifications = null,
         ?LoggerInterface $logger = null,
+        ?\Closure $validate = null,
     ): QuoteService {
         $config = ClientFactory::config(array_merge([
             'mode' => 'sandbox',
@@ -222,9 +285,12 @@ class QuoteServiceTest extends TestCase
         }
 
         $rates ??= static fn (): MockResponse => ClientFactory::ok(['request_token' => 'tok', 'couriers' => $couriers]);
-        $http = new MockHttpClient(function (string $method, string $url, array $options) use ($rates): ResponseInterface {
+        $validate ??= fn (): MockResponse => ClientFactory::ok(['address_code' => 455 + $this->validations]);
+        $http = new MockHttpClient(function (string $method, string $url, array $options) use ($rates, $validate): ResponseInterface {
             if (str_contains($url, '/address/validate')) {
-                return ClientFactory::ok(['address_code' => 456]);
+                ++$this->validations;
+
+                return $validate();
             }
 
             if (str_contains($url, '/labels/boxes')) {
@@ -242,7 +308,7 @@ class QuoteServiceTest extends TestCase
         return new QuoteService(
             $config,
             $client,
-            new ReceiverAddressService($config, $client, $cache),
+            new ReceiverAddressService($config, $client, $cache, (new AddressTable())->connect($this->createStub(Connection::class))),
             new PackageBuilder($config, $client, $cache, new NullLogger()),
             new FailureNotifier($notifications ?? $this->createMock(NotificationService::class), $cache),
             $cache,

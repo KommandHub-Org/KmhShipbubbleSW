@@ -142,6 +142,7 @@ class KmhShipbubbleSW extends Plugin
         }
 
         // List every table the plugin's migrations create, children first.
+        $connection->executeStatement('DROP TABLE IF EXISTS `kmh_shipbubble_address`');
         $connection->executeStatement('DROP TABLE IF EXISTS `kmh_shipbubble_webhook_event`');
         $connection->executeStatement('DROP TABLE IF EXISTS `kmh_shipbubble_shipment`');
         // Shopware removes the config domain itself, but not the plugin's own state keys.

@@ -1,3 +1,10 @@
+# 1.0.1
+
+- Adresscodes von Kundenadressen werden dauerhaft gespeichert statt 30 Tage. Shipbubble berechnet jede Adressprüfung, und die Codes laufen nie ab – Sie zahlen also einmal pro Adresse. Gespeichert wird nur ein Hash der Adresse; Groß- und Kleinschreibung oder Leerzeichen ergeben keine neue Adresse.
+- Lehnt Shipbubble einen gespeicherten Adresscode bei der Preisabfrage ab, wird die Adresse einmal neu geprüft, statt dass der Checkout scheitert.
+
+---
+
 # 1.0.0
 
 Erste Version.

@@ -20,9 +20,9 @@ use Kommandhub\ShipbubbleSW\Tests\Unit\Client\ClientFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
-use Shopware\Core\Checkout\Cart\Delivery\Struct\ShippingLocation;
-use Shopware\Core\System\Country\CountryEntity;
-use Shopware\Core\Test\Generator;
+use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
+use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Doctrine\DBAL\Connection;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
@@ -41,14 +41,71 @@ use Symfony\Component\HttpClient\Response\MockResponse;
 #[UsesClass(QuoteError::class)]
 class ReceiverAddressServiceTest extends TestCase
 {
+    private AddressTable $table;
+
+    private ArrayAdapter $cache;
+
+    protected function setUp(): void
+    {
+        $this->table = new AddressTable();
+        $this->cache = new ArrayAdapter();
+    }
+
+    public function testStoredCodeOutlivesTheCacheAndIsNeverValidatedAgain(): void
+    {
+        $http = new MockHttpClient([ClientFactory::ok(['address_code' => 456])]);
+        $service = $this->service($http);
+
+        static::assertSame('456', $this->code($service, CheckoutFixture::context()));
+        static::assertCount(1, $this->table->rows);
+
+        $this->cache->clear();
+        static::assertSame('456', $this->code($this->service($http), CheckoutFixture::context()));
+        static::assertSame(1, $http->getRequestsCount());
+    }
+
+    public function testSpacingAndCaseDoNotMakeANewAddress(): void
+    {
+        $http = new MockHttpClient([ClientFactory::ok(['address_code' => 456])]);
+        $service = $this->service($http);
+
+        $this->code($service, CheckoutFixture::context());
+        static::assertSame('456', $this->code($service, CheckoutFixture::context(street: ' 15  awolowo ROAD ')));
+        static::assertSame(1, $http->getRequestsCount());
+    }
+
+    public function testSandboxAndLiveCodesAreKeptApart(): void
+    {
+        $http = new MockHttpClient([ClientFactory::ok(['address_code' => 1]), ClientFactory::ok(['address_code' => 2])]);
+
+        static::assertSame('1', $this->code($this->service($http), CheckoutFixture::context()));
+        static::assertSame('2', $this->code($this->service($http, 'live'), CheckoutFixture::context()));
+        static::assertCount(2, $this->table->rows);
+    }
+
+    public function testForgetMakesTheNextQuoteValidateAgain(): void
+    {
+        $http = new MockHttpClient([ClientFactory::ok(['address_code' => 456]), ClientFactory::ok(['address_code' => 789])]);
+        $service = $this->service($http);
+        $context = CheckoutFixture::context();
+
+        $this->code($service, $context);
+        $address = $context->getShippingLocation()->getAddress();
+        static::assertInstanceOf(CustomerAddressEntity::class, $address);
+        $service->forget($address, 'ada@example.com', $context->getSalesChannelId());
+
+        static::assertSame([], $this->table->rows);
+        static::assertSame('789', $this->code($service, $context));
+    }
+
     public function testValidatesOnceAndCachesTheCode(): void
     {
         $response = ClientFactory::ok(['address_code' => 456]);
         $http = new MockHttpClient([$response]);
         $service = $this->service($http);
 
-        static::assertSame('456', $service->addressCode(CheckoutFixture::context()));
-        static::assertSame('456', $service->addressCode(CheckoutFixture::context()));
+        static::assertSame('456', $this->code($service, CheckoutFixture::context()));
+        static::assertSame('456', $this->code($service, CheckoutFixture::context()));
         static::assertSame(1, $http->getRequestsCount());
 
         $body = json_decode($response->getRequestOptions()['body'], true);
@@ -64,8 +121,8 @@ class ReceiverAddressServiceTest extends TestCase
         $http = new MockHttpClient([ClientFactory::json(['status' => 'failed', 'message' => 'Sorry'], 400)]);
         $service = $this->service($http);
 
-        static::assertSame(QuoteError::InvalidAddress, $service->addressCode(CheckoutFixture::context()));
-        static::assertSame(QuoteError::InvalidAddress, $service->addressCode(CheckoutFixture::context()));
+        static::assertSame(QuoteError::InvalidAddress, $this->code($service, CheckoutFixture::context()));
+        static::assertSame(QuoteError::InvalidAddress, $this->code($service, CheckoutFixture::context()));
         static::assertSame(1, $http->getRequestsCount());
     }
 
@@ -75,13 +132,13 @@ class ReceiverAddressServiceTest extends TestCase
         $service = $this->service($http);
 
         try {
-            $service->addressCode(CheckoutFixture::context());
+            $this->code($service, CheckoutFixture::context());
             static::fail('Expected exception');
         } catch (ShipbubbleApiException $e) {
             static::assertTrue($e->getReason()->isTransient());
         }
 
-        static::assertSame('7', $service->addressCode(CheckoutFixture::context()));
+        static::assertSame('7', $this->code($service, CheckoutFixture::context()));
     }
 
     public function testIncompleteAddressesNeverCallShipbubble(): void
@@ -89,19 +146,29 @@ class ReceiverAddressServiceTest extends TestCase
         $http = new MockHttpClient([]);
         $service = $this->service($http);
 
-        static::assertSame(QuoteError::IncompleteAddress, $service->addressCode(CheckoutFixture::context(phone: '')));
-        static::assertSame(QuoteError::IncompleteAddress, $service->addressCode(CheckoutFixture::context(street: ' ')));
-        static::assertSame(QuoteError::IncompleteAddress, $service->addressCode(CheckoutFixture::context(withCustomer: false)));
-        static::assertSame(QuoteError::IncompleteAddress, $service->addressCode(
-            Generator::generateSalesChannelContext(shippingLocation: new ShippingLocation(new CountryEntity())),
-        ));
+        static::assertSame(QuoteError::IncompleteAddress, $this->code($service, CheckoutFixture::context(phone: '')));
+        static::assertSame(QuoteError::IncompleteAddress, $this->code($service, CheckoutFixture::context(street: ' ')));
+        static::assertSame(QuoteError::IncompleteAddress, $this->code($service, CheckoutFixture::context(withCustomer: false)));
         static::assertSame(0, $http->getRequestsCount());
     }
 
-    private function service(MockHttpClient $http): ReceiverAddressService
+    private function service(MockHttpClient $http, string $mode = 'sandbox'): ReceiverAddressService
     {
-        $config = ClientFactory::config(['mode' => 'sandbox', 'sandboxApiKey' => ClientFactory::API_KEY]);
+        $config = ClientFactory::config(['mode' => $mode, $mode . 'ApiKey' => ClientFactory::API_KEY]);
 
-        return new ReceiverAddressService($config, new ShipbubbleClient(new ShipbubbleHttpClient($config, $http)), new ArrayAdapter());
+        return new ReceiverAddressService(
+            $config,
+            new ShipbubbleClient(new ShipbubbleHttpClient($config, $http)),
+            $this->cache,
+            $this->table->connect($this->createStub(Connection::class)),
+        );
+    }
+
+    private function code(ReceiverAddressService $service, SalesChannelContext $context): string|QuoteError
+    {
+        $address = $context->getShippingLocation()->getAddress();
+        static::assertInstanceOf(CustomerAddressEntity::class, $address);
+
+        return $service->addressCodeFor($address, (string)$context->getCustomer()?->getEmail(), $context->getSalesChannelId());
     }
 }

@@ -1,3 +1,10 @@
+# 1.0.1
+
+- Customer address codes are stored permanently instead of for 30 days. Shipbubble charges for each address validation and its codes never expire, so you pay once per address. Only a hash of the address is kept; changes in case or spacing don't count as a new address.
+- If Shipbubble refuses a stored address code when quoting, the address is validated again once, instead of checkout failing.
+
+---
+
 # 1.0.0
 
 First release.

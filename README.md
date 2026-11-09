@@ -183,7 +183,7 @@ flows, e.g. SMS or WhatsApp messages.
 
 Deactivating or uninstalling switches the shipping method off; it is never
 deleted, because orders refer to it. Uninstalling **without** "keep user data"
-also removes the shipment and webhook tables, the stored sender address codes,
+also removes the shipment, address and webhook tables, the stored sender address codes,
 the plugin's flows and their mail templates. With "keep user data" everything
 stays.
 
@@ -254,9 +254,14 @@ When the customer selects "Courier delivery (Shipbubble)", the cart processor
 `Shipping/ShipbubbleDeliveryProcessor` (priority -6000, after the core delivery
 processor) prices the delivery through `Quote/QuoteService`:
 
-1. The shipping address is validated with Shipbubble once and its address code
-   cached for 30 days (an address Shipbubble rejects: for an hour). Street,
-   city, country and **phone** are required.
+1. The shipping address is validated with Shipbubble once, and its address
+   code is stored in `kmh_shipbubble_address` for good, per sales channel and
+   mode. Shipbubble charges for each validation (50 free, then ₦5 each) and its
+   codes never expire. Name, email, phone and address are part of the key (only
+   a hash is stored); case and extra spaces are not. An address Shipbubble
+   rejects is not sent again for an hour. If a rate request is refused because
+   of the receiver address, the address is validated once more. Street, city,
+   country and **phone** are required.
 2. The parcel is built from the product line items (`Quote/PackageBuilder`):
    weight in kg (default product weight when missing), unit price, quantity,
    the first standard Shipbubble box that carries the weight.

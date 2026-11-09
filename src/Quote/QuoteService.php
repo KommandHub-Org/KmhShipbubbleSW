@@ -12,6 +12,7 @@ use Kommandhub\ShipbubbleSW\Exception\ShipbubbleApiException;
 use Kommandhub\ShipbubbleSW\Setting\Service\Config;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Checkout\Cart\Cart;
+use Shopware\Core\Checkout\Customer\Aggregate\CustomerAddress\CustomerAddressEntity;
 use Shopware\Core\Checkout\Order\Aggregate\OrderAddress\OrderAddressEntity;
 use Shopware\Core\Checkout\Order\OrderEntity;
 use Shopware\Core\Framework\Context;
@@ -60,13 +61,13 @@ class QuoteService
                 return QuoteError::Unavailable;
             }
 
-            $receiverCode = $this->receiverAddressService->addressCode($context);
+            $address = $context->getShippingLocation()->getAddress();
 
-            if ($receiverCode instanceof QuoteError) {
-                return $receiverCode;
+            if ($address === null) {
+                return QuoteError::IncompleteAddress;
             }
 
-            return $this->rates($receiverCode, $this->packageBuilder->build($cart, $salesChannelId), $context->getCurrency()->getIsoCode(), $salesChannelId, true);
+            return $this->ratesTo($address, (string)$context->getCustomer()?->getEmail(), fn (): Package => $this->packageBuilder->build($cart, $salesChannelId), $context->getCurrency()->getIsoCode(), $salesChannelId, true);
         }, $salesChannelId, $context->getContext());
     }
 
@@ -81,13 +82,7 @@ class QuoteService
         $salesChannelId = $order->getSalesChannelId();
 
         return $this->report(function () use ($order, $address, $salesChannelId): QuoteStruct|QuoteError {
-            $receiverCode = $this->receiverAddressService->addressCodeFor($address, (string)$order->getOrderCustomer()?->getEmail(), $salesChannelId);
-
-            if ($receiverCode instanceof QuoteError) {
-                return $receiverCode;
-            }
-
-            return $this->rates($receiverCode, $this->packageBuilder->buildForOrder($order), (string)$order->getCurrency()?->getIsoCode(), $salesChannelId, false);
+            return $this->ratesTo($address, (string)$order->getOrderCustomer()?->getEmail(), fn (): Package => $this->packageBuilder->buildForOrder($order), (string)$order->getCurrency()?->getIsoCode(), $salesChannelId, false);
         }, $salesChannelId, $context);
     }
 
@@ -141,6 +136,56 @@ class QuoteService
 
             return true;
         });
+    }
+
+    /**
+     * Rates to a receiver address. If Shipbubble refuses the receiver's stored
+     * code, the address is validated once more and the rates asked again
+     * (Shipbubble support: "revalidate the address").
+     *
+     * @param \Closure(): Package $package built only once an address code is known
+     *
+     * @throws ShipbubbleApiException
+     */
+    private function ratesTo(CustomerAddressEntity|OrderAddressEntity $address, string $email, \Closure $package, string $currency, string $salesChannelId, bool $useCache): QuoteStruct|QuoteError
+    {
+        $receiverCode = $this->receiverAddressService->addressCodeFor($address, $email, $salesChannelId);
+
+        if ($receiverCode instanceof QuoteError) {
+            return $receiverCode;
+        }
+
+        $parcel = $package();
+
+        try {
+            return $this->rates($receiverCode, $parcel, $currency, $salesChannelId, $useCache);
+        } catch (ShipbubbleApiException $e) {
+            if (!self::blamesReceiverAddress($e)) {
+                throw $e;
+            }
+        }
+
+        $this->receiverAddressService->forget($address, $email, $salesChannelId);
+        $receiverCode = $this->receiverAddressService->addressCodeFor($address, $email, $salesChannelId);
+
+        if ($receiverCode instanceof QuoteError) {
+            return $receiverCode;
+        }
+
+        return $this->rates($receiverCode, $parcel, $currency, $salesChannelId, $useCache);
+    }
+
+    /**
+     * ponytail: Shipbubble names no exact message for a code it no longer
+     * accepts, only that it "relates to the address"; match the text they send
+     * once known. "sender" is excluded: revalidating the receiver would not fix
+     * a bad sender code and would charge the merchant on every checkout.
+     */
+    private static function blamesReceiverAddress(ShipbubbleApiException $e): bool
+    {
+        return \in_array($e->getReason(), [ApiErrorReason::BadRequest, ApiErrorReason::Validation, ApiErrorReason::NotFound], true)
+            && stripos($e->getMessage(), 'address') !== false
+            && stripos($e->getMessage(), 'sender') === false;
     }
 
     /**
