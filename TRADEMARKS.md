@@ -15,8 +15,10 @@ project's integrity and the community's trust in the name.
 The following are trademarks of **Kommandhub Limited** ("the Marks"):
 
 - The names **"KommandHub"** and **"Kommandhub"**.
-- The **KommandHub logo** (the rounded-square network mark shipped in this
-  repository, e.g. `src/Resources/config/plugin.png`).
+- The **KommandHub logo** (the rounded-square network mark).
+
+The plugin icon, `src/Resources/config/plugin.png`, is the Shipbubble logo,
+used with Shipbubble's permission (see "Third-party trademarks" below).
 - Product names that combine the above, such as **"Shipbubble by Kommandhub"**.
 
 ## What you may do (no permission needed)
