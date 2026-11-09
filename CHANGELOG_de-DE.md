@@ -1,3 +1,9 @@
+# 1.0.3
+
+- Das Plugin-Symbol ist jetzt das Shipbubble-Logo, mit Erlaubnis von Shipbubble verwendet.
+
+---
+
 # 1.0.2
 
 - Das Plugin heißt jetzt „Shipbubble“ (vorher „Shipbubble Kurierversand“). Die Versandart behält ihren Namen „Kurierversand (Shipbubble)“.

@@ -1,3 +1,9 @@
+# 1.0.3
+
+- The plugin icon is now the Shipbubble logo, used with Shipbubble's permission.
+
+---
+
 # 1.0.2
 
 - The plugin is now called "Shipbubble" (was "Shipbubble Courier Delivery"). The shipping method keeps its name, "Courier delivery (Shipbubble)".
