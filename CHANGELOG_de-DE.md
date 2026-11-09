@@ -1,3 +1,10 @@
+# 1.0.2
+
+- Das Plugin heißt jetzt „Shipbubble“ (vorher „Shipbubble Kurierversand“). Die Versandart behält ihren Namen „Kurierversand (Shipbubble)“.
+- Kommandhub entwickelt das Plugin als Entwicklungspartner von Shipbubble; README und Markenhinweise sagen das jetzt.
+
+---
+
 # 1.0.1
 
 - Adresscodes von Kundenadressen werden dauerhaft gespeichert statt 30 Tage. Shipbubble berechnet jede Adressprüfung, und die Codes laufen nie ab – Sie zahlen also einmal pro Adresse. Gespeichert wird nur ein Hash der Adresse; Groß- und Kleinschreibung oder Leerzeichen ergeben keine neue Adresse.

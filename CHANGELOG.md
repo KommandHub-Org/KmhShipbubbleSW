@@ -1,3 +1,10 @@
+# 1.0.2
+
+- The plugin is now called "Shipbubble" (was "Shipbubble Courier Delivery"). The shipping method keeps its name, "Courier delivery (Shipbubble)".
+- Kommandhub builds the plugin as a Shipbubble developer partner; the README and trademark notices say so.
+
+---
+
 # 1.0.1
 
 - Customer address codes are stored permanently instead of for 30 days. Shipbubble charges for each address validation and its codes never expire, so you pay once per address. Only a hash of the address is kept; changes in case or spacing don't count as a new address.
