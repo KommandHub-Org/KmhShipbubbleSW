@@ -37,6 +37,7 @@ build:
           - phpcs.dist.xml
           - phpstan.dist.neon
           - phpunit.dist.xml
+          - .shopware-extension.yml
           - tests
           - Makefile
           - .github
