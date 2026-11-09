@@ -68,21 +68,9 @@ relays delivery fees.
 
 ## Installation
 
-### Shopware Store
-
-Install **Shipbubble** from the Shopware Store under
-**Extensions > Store**, then activate it.
-
-### Release zip
-
-Download `KmhShipbubbleSW.zip` from the
-[GitHub releases](https://github.com/KommandHub-Org/KmhShipbubbleSW/releases)
-and upload it under **Extensions > My extensions > Upload extension**, then
-activate it.
-
-### Composer
-
-The package is on [Packagist](https://packagist.org/packages/kommandhub/shipbubble-sw):
+Install with Composer from
+[Packagist](https://packagist.org/packages/kommandhub/shipbubble-sw). The
+plugin is not in the Shopware Store, and no release zip is published yet.
 
 ```bash
 composer require kommandhub/shipbubble-sw
