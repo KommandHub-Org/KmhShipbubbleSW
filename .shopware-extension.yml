@@ -37,6 +37,13 @@ build:
           - phpcs.dist.xml
           - phpstan.dist.neon
           - phpunit.dist.xml
+          - tests
+          - Makefile
+          - .github
+          - .editorconfig
+          - .php-cs-fixer.dist.php
+          - CODE_OF_CONDUCT.md
+          - CONTRIBUTING.md
           # Written by shopware-cli's asset build, which mistakes a plugin's
           # src/Storefront namespace folder for the core bundle.
           - src/Storefront/Resources

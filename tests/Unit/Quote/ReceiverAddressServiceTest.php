@@ -83,6 +83,28 @@ class ReceiverAddressServiceTest extends TestCase
         static::assertCount(2, $this->table->rows);
     }
 
+    public function testBalanceRefusalPausesNewValidationsButNotStoredCodes(): void
+    {
+        $http = new MockHttpClient([
+            ClientFactory::ok(['address_code' => 456]),
+            ClientFactory::json(['status' => 'failed', 'message' => 'Insufficient wallet balance, Please fund your wallet to validate new addresses'], 400),
+        ]);
+        $service = $this->service($http);
+        static::assertSame('456', $this->code($service, CheckoutFixture::context()));
+
+        foreach (['2 Marina Road', '3 Broad Street'] as $street) {
+            try {
+                $this->code($service, CheckoutFixture::context(street: $street));
+                static::fail('Expected exception');
+            } catch (ShipbubbleApiException $e) {
+                static::assertSame(ApiErrorReason::InsufficientBalance, $e->getReason());
+            }
+        }
+
+        static::assertSame(2, $http->getRequestsCount());
+        static::assertSame('456', $this->code($service, CheckoutFixture::context()));
+    }
+
     public function testForgetMakesTheNextQuoteValidateAgain(): void
     {
         $http = new MockHttpClient([ClientFactory::ok(['address_code' => 456]), ClientFactory::ok(['address_code' => 789])]);

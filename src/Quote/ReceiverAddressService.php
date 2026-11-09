@@ -30,6 +30,13 @@ class ReceiverAddressService
 {
     private const INVALID_TTL = 3600;
 
+    /**
+     * After Shipbubble refuses a validation for lack of balance, new
+     * addresses are not sent again for this long. Refusals cost nothing, but
+     * otherwise every cart recalculation asks again. Stored codes still work.
+     */
+    private const REFUSED_TTL = 60;
+
     public function __construct(
         private readonly Config $config,
         private readonly ShipbubbleClient $client,
@@ -68,10 +75,24 @@ class ReceiverAddressService
             return $stored;
         }
 
-        $code = $this->cache->get('kmh_sb_addr_' . $salesChannelId . '_' . $mode . '_' . $hash, function (ItemInterface $item, bool &$save) use ($name, $email, $phone, $line, $address, $salesChannelId, $mode, $hash): string {
+        $refusedKey = 'kmh_sb_validation_refused_' . $salesChannelId . '_' . $mode;
+
+        if ($this->validationRefused($refusedKey)) {
+            throw new ShipbubbleApiException(ApiErrorReason::InsufficientBalance, 'Shipbubble refused address validation for lack of balance less than a minute ago; not asked again yet.');
+        }
+
+        $code = $this->cache->get('kmh_sb_addr_' . $salesChannelId . '_' . $mode . '_' . $hash, function (ItemInterface $item, bool &$save) use ($name, $email, $phone, $line, $address, $salesChannelId, $mode, $hash, $refusedKey): string {
             try {
                 $validated = $this->client->addresses()->validate($name, $email, $phone, $line, $address->getZipcode(), $salesChannelId);
             } catch (ShipbubbleApiException $e) {
+                if ($e->getReason() === ApiErrorReason::InsufficientBalance) {
+                    $this->cache->get($refusedKey, static function (ItemInterface $item): bool {
+                        $item->expiresAfter(self::REFUSED_TTL);
+
+                        return true;
+                    });
+                }
+
                 if ($e->getReason() !== ApiErrorReason::Validation && $e->getReason() !== ApiErrorReason::BadRequest) {
                     throw $e;
                 }
@@ -108,6 +129,15 @@ class ReceiverAddressService
                 'hash' => self::hash($address, self::line($address), $email),
             ],
         );
+    }
+
+    private function validationRefused(string $key): bool
+    {
+        return $this->cache->get($key, static function (ItemInterface $item, bool &$save): bool {
+            $save = false;
+
+            return false;
+        });
     }
 
     private function store(string $salesChannelId, string $mode, string $hash, string $code): void

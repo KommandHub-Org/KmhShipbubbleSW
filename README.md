@@ -182,7 +182,9 @@ flows, e.g. SMS or WhatsApp messages.
 ### Uninstalling
 
 Deactivating or uninstalling switches the shipping method off; it is never
-deleted, because orders refer to it. Uninstalling **without** "keep user data"
+deleted, because orders refer to it. Activating the plugin again does not switch
+it back on: turn on **Courier delivery (Shipbubble)** under **Settings > Shop >
+Shipping** yourself. Uninstalling **without** "keep user data"
 also removes the shipment, address and webhook tables, the stored sender address codes,
 the plugin's flows and their mail templates. With "keep user data" everything
 stays.
